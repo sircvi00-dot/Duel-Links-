@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blue-Eyes Speed Duel Trainer</title>
+<meta name="theme-color" content="#eef2f6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#eef2f6; --ink:#1c2433; --sapph:#1f5fa8; --sapph2:#163f73; --silver:#8a96a8; --glacier:#dbe6f2; --mute:#5c6678; --warn:#b3361e;
+  --display:"Cinzel","Trajan Pro",Georgia,serif;
+  --ui:"Barlow Semi Condensed","Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--ui);color:var(--ink);font-size:16px;line-height:1.45;background:linear-gradient(180deg,#f4f7fa 0%,#e9eef4 100%);background-attachment:fixed;
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);-webkit-tap-highlight-color:transparent}
+button{font-family:var(--ui);font-size:15px;color:var(--ink);background:#fff;border:1px solid rgba(31,95,168,.35);border-radius:6px;padding:9px 13px;cursor:pointer;min-height:42px}
+button:hover{border-color:var(--sapph);background:rgba(31,95,168,.07)}
+button:focus-visible{outline:2px solid var(--sapph);outline-offset:2px}
+button.primary{background:var(--sapph);border-color:var(--sapph);color:#fff;font-weight:600}
+button:disabled{opacity:.4}
+.app{max-width:1100px;margin:0 auto;padding:10px 10px 18px;display:grid;gap:10px}
+header{display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:19px;margin:0;letter-spacing:.04em;color:var(--sapph2);white-space:nowrap}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{padding:6px 10px;min-height:36px;font-size:14px}
+.tabs button.on{background:var(--sapph);color:#fff;border-color:var(--sapph);font-weight:600}
+@media (max-width:430px){.tabs{width:100%}.tabs button{flex:1;padding:6px 4px}}
+.lp{display:flex;justify-content:space-between;font-family:var(--display);font-size:14px;color:var(--mute);padding:0 4px}
+.lp b{color:var(--ink);font-size:17px;margin-left:6px}
+.stage{position:relative;width:100%;margin:0 auto;touch-action:manipulation;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.board{position:absolute;left:0;top:0;width:100%;border-radius:10px;overflow:hidden;
+  background:radial-gradient(ellipse 60% 30% at 50% 50%,rgba(255,255,255,.7),transparent 70%),linear-gradient(180deg,#e6ebf1 0%,#dbe6f2 48%,#d3e1f0 52%,#e2e9f1 100%);
+  border:1px solid rgba(22,63,115,.18)}
+.eye{position:absolute;left:50%;transform:translate(-50%,-50%);border:1px solid rgba(31,95,168,.16);border-radius:50%/50%;pointer-events:none}
+.eye::after{content:"";position:absolute;left:50%;top:50%;width:26%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(31,95,168,.2)}
+.zone{position:absolute;border:1px solid rgba(22,63,115,.18);background:rgba(255,255,255,.5);border-radius:4px}
+.zone.opp{background:rgba(245,240,240,.55);border-color:rgba(120,80,80,.2)}
+.zone.pilez{border-style:dashed}
+.zone .lab{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;color:rgba(28,36,51,.42)}
+.zone.hot{border-color:var(--sapph);box-shadow:0 0 0 2px rgba(31,95,168,.35) inset;background:rgba(31,95,168,.08)}
+.handbar{position:absolute;left:0;width:100%;border-radius:10px;background:#e1e7ee;border:1px solid rgba(22,63,115,.12)}
+.card{position:absolute;left:0;top:0;border-radius:3px;overflow:hidden;cursor:pointer;touch-action:none;
+  transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .4s ease,box-shadow .3s;box-shadow:0 2px 6px rgba(10,20,40,.3);background:#28344a}
+.card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none}
+.card .fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:8px;line-height:1.1;padding:3px;
+  background:linear-gradient(#5a7fae,#24406b);color:#fff}
+.card .back{position:absolute;inset:0;display:none;border:2px solid #20304a;
+  background:radial-gradient(ellipse 22% 16% at 50% 50%,#bfe1ff 0 40%,transparent 44%),radial-gradient(ellipse 40% 30% at 50% 50%,#2f6fb8 0 60%,transparent 63%),linear-gradient(135deg,#1d2c47,#0f1a2e 60%,#1d2c47)}
+.card .back::after{content:"";position:absolute;inset:18% 12%;border:1.5px solid rgba(191,225,255,.55);border-radius:50%}
+.card.down .back{display:block}
+.card.down img,.card.down .fb{visibility:hidden}
+.card.mine.down.st .back::before{content:"Set";position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:8px;color:#d6e9ff;z-index:1}
+.card .atk{position:absolute;left:0;right:0;bottom:0;z-index:2;font-size:8px;line-height:1.3;text-align:center;background:rgba(12,22,40,.78);color:#fff}
+.card .atk:empty{display:none}
+.card.dummy{background:linear-gradient(160deg,#8a4c46,#4d2622);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-size:8px;line-height:1.15;padding:3px}
+.card.osback .back{background:linear-gradient(135deg,#5a2a26,#2b1210 60%,#5a2a26);border-color:#3d1a16}
+.card.act{box-shadow:0 0 0 2px var(--sapph),0 0 16px 4px rgba(90,160,240,.85);animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 2px var(--sapph),0 0 26px 8px rgba(90,160,240,.95)}}
+.card.drag{transition:none;z-index:500!important;box-shadow:0 10px 24px rgba(10,20,40,.45)}
+.pcount{position:absolute;font-size:10px;font-weight:600;color:#fff;background:rgba(22,63,115,.85);border-radius:8px;padding:0 5px;z-index:300;pointer-events:none}
+.banner{position:absolute;left:0;right:0;text-align:center;font-family:var(--display);font-weight:700;color:var(--sapph2);text-shadow:0 0 10px #fff,0 0 4px #fff;pointer-events:none;z-index:600;animation:ban 2.2s ease-out forwards}
+@keyframes ban{0%{opacity:0;transform:scale(1.3)}15%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+.toast{position:absolute;left:4%;right:4%;transform:translateY(-50%);z-index:700;text-align:center;font-size:14px;line-height:1.35;
+  background:#fff;color:var(--ink);border:1px solid var(--sapph);border-radius:8px;box-shadow:0 4px 14px rgba(10,20,40,.18);padding:9px 12px;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.on{opacity:1}.toast.bad{border-color:var(--warn);color:var(--warn)}
+.panel{display:grid;gap:9px;align-content:start}
+.caption{background:#fff;border:1px solid rgba(22,63,115,.14);border-radius:10px;padding:11px 13px;min-height:90px}
+.caption .k{font-family:var(--display);font-size:13px;color:var(--sapph2);margin-bottom:4px}
+.caption p{margin:0}
+.caption .why{margin-top:6px;font-size:14px;color:var(--mute)}
+.ctrls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctrls .sp{margin-left:auto;font-size:14px;color:var(--mute);display:flex;gap:6px;align-items:center}
+select{font-family:var(--ui);font-size:15px;background:#fff;color:var(--ink);border:1px solid rgba(22,63,115,.3);border-radius:6px;padding:8px;max-width:100%}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left}
+.opts button.bad{border-color:var(--warn);animation:shake .35s}
+.opts button.good{border-color:#2e7d32;background:rgba(46,125,50,.08)}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.fbk{font-size:15px;color:var(--mute);min-height:22px}
+.fbk.ok{color:#2e7d32}.fbk.no{color:var(--warn)}
+.pstat{font-size:14px;color:var(--mute)}
+.view{display:none}
+.view h2{font-family:var(--display);font-size:17px;color:var(--sapph2);margin:14px 0 8px;font-weight:500}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.dcard{position:relative;cursor:pointer;border-radius:4px;overflow:hidden;aspect-ratio:59/86;background:#28344a;box-shadow:0 2px 6px rgba(10,20,40,.35);border:0;padding:0;min-height:0}
+.dcard img{position:relative;width:100%;height:100%;object-fit:cover;display:block}
+.dcard .fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;line-height:1.15;padding:4px;color:#fff;background:linear-gradient(#5a7fae,#24406b)}
+.dcard .q{position:absolute;right:3px;bottom:3px;background:var(--sapph2);color:#fff;border-radius:4px;font-size:12px;padding:0 5px}
+.skillbox{background:#fff;border:1px solid rgba(22,63,115,.2);border-left:4px solid var(--sapph);border-radius:8px;padding:10px 12px;font-size:15px}
+.skillbox b{font-family:var(--display);color:var(--sapph2);font-weight:500}
+.lesson{background:#fff;border:1px solid rgba(22,63,115,.14);border-radius:10px;margin:0 0 8px;overflow:hidden}
+.lesson summary{cursor:pointer;padding:11px 13px;font-family:var(--display);font-size:15px;color:var(--sapph2);list-style:none;display:flex;gap:10px;align-items:baseline}
+.lesson summary::-webkit-details-marker{display:none}
+.lesson summary .n{font-family:var(--ui);font-size:13px;color:var(--silver);min-width:16px}
+.lesson[open] summary{border-bottom:1px solid rgba(22,63,115,.1)}
+.lesson .body{padding:8px 14px 12px;font-size:15px;max-width:68ch}
+.lesson .body p{margin:6px 0}
+.lesson .body ul{margin:6px 0;padding-left:20px}.lesson .body li{margin:3px 0}
+.intro{font-size:15px;color:var(--mute);max-width:68ch;margin:4px 0 10px}
+.modal{position:fixed;inset:0;background:rgba(14,22,36,.55);display:none;align-items:center;justify-content:center;z-index:800;padding:14px}
+.modal.on{display:flex}
+.mbox{max-width:760px;width:100%;max-height:min(80vh,620px);background:#fbfcfd;border:1px solid var(--sapph);border-radius:12px;padding:10px;display:grid;gap:10px;grid-template-columns:34% minmax(0,1fr);align-items:start}
+.mbox img{width:100%;border-radius:5px;box-shadow:0 4px 12px rgba(10,20,40,.5)}
+.mtext{display:flex;flex-direction:column;gap:8px;max-height:calc(min(80vh,620px) - 20px);min-height:0}
+.mscroll{overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0;flex:1}
+.mbox h3{font-family:var(--display);color:var(--sapph2);margin:0;font-size:15px;line-height:1.2}
+.mbox .tl{font-size:13px;color:var(--mute)}
+.mbox .role{background:rgba(31,95,168,.07);border-left:3px solid var(--sapph);padding:6px 8px;font-size:13px;line-height:1.35}
+.mbox .desc{font-size:12px;line-height:1.45;color:var(--mute);white-space:pre-line}
+.mbox .acts{display:grid;gap:5px}.mbox .acts button{text-align:left;font-size:14px;min-height:38px;padding:7px 10px}
+.mbox .acts .h{font-size:12px;color:var(--mute)}
+@media (min-width:760px){.mbox{grid-template-columns:280px minmax(0,1fr);padding:14px;gap:14px}.mbox h3{font-size:19px}.mbox .role{font-size:15px}.mbox .desc{font-size:14px}}
+.sheet{max-width:440px;width:100%;max-height:84vh;overflow:auto;background:#fbfcfd;border:1px solid var(--sapph);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px}
+.sheet h3{font-family:var(--display);color:var(--sapph2);margin:0;font-size:16px}
+.sheet .sub{font-size:14px;color:var(--mute);margin:0}
+.sheet button{text-align:left}
+.sheet button.cancel{text-align:center;margin-top:4px}
+.sheet button .w{display:block;font-size:12.5px;color:var(--mute);margin-top:2px;line-height:1.3}
+.sheet button.best{border-color:var(--sapph);box-shadow:0 0 0 1px var(--sapph) inset}
+.sheet ol{margin:0;padding-left:22px}.sheet ol li{margin:6px 0;font-size:14.5px}
+.sheet ol li .w{display:block;font-size:12.5px;color:var(--mute)}
+.sheet ol li.done{opacity:.45}
+.sheet .note{font-size:13px;color:var(--mute);margin:0}
+.pview .pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px}
+.pview .pc{position:relative;aspect-ratio:59/86;border-radius:4px;overflow:hidden;background:#28344a;cursor:pointer;padding:0;min-height:0;border:0}
+.pview .pc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.bigcard{position:fixed;inset:0;z-index:900;background:rgba(10,14,22,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.bigcard img{max-width:100%;max-height:calc(100% - 40px);border-radius:10px}
+.bigcard p{color:#fff;opacity:.75;margin:10px 0 0;font-size:14px}
+.dmode{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--mute)}
+.dmode button{padding:6px 9px;font-size:13px;min-height:34px}
+.dmode button.on{background:var(--sapph);color:#fff;border-color:var(--sapph)}
+.hint{font-size:14px;color:var(--mute);margin:0}
+@media (min-width:980px){.main{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:18px;align-items:start}}
+@media (prefers-reduced-motion:reduce){.card{transition:none}.card.act,.banner,.opts button.bad{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Blue-Eyes Trainer</h1>
+    <div class="tabs" role="tablist">
+      <button id="tLearn" class="on">Learn</button>
+      <button id="tWatch">Watch</button>
+      <button id="tPractice">Practice</button>
+      <button id="tPlay">Play</button>
+      <button id="tDeck">Deck</button>
+    </div>
+  </header>
+
+  <div class="view" id="learnview"></div>
+
+  <div class="main view" id="duelview">
+    <div>
+      <div class="lp"><span>Opponent<b id="lpO">4000</b></span><span>You<b id="lpM">4000</b></span></div>
+      <div class="stage" id="stage"></div>
+    </div>
+    <div class="panel">
+      <div class="caption"><div class="k" id="stepk"></div><p id="cap"></p><div class="why" id="capw"></div></div>
+      <div id="watchCtrls" class="ctrls">
+        <button id="bPrev">◀ Back</button>
+        <button id="bPlay" class="primary">Auto play</button>
+        <button id="bNext">Next ▶</button>
+        <button id="bTurn" class="primary" style="display:none">Next turn ▶</button>
+        <select id="wPick" aria-label="Choose a hand"></select>
+        <button id="bRand">🎲 Random hand</button>
+        <label class="sp">Speed <select id="speed"><option value="1.7">Slow</option><option value="1" selected>Normal</option><option value="0.6">Fast</option></select></label>
+      </div>
+      <div id="practice" style="display:none" class="panel">
+        <div class="k" style="font-family:var(--display);color:var(--sapph2)">What’s your best move?</div>
+        <div class="opts" id="opts"></div>
+        <div class="fbk" id="fbk"></div>
+        <div class="ctrls"><button id="qUndo" disabled>↶ Undo</button><button id="qReset">Start over</button><button id="qRand">🎲 New hand</button>
+          <button id="qTurn" class="primary" style="display:none">Next turn ▶</button><span class="sp" id="score"></span></div>
+        <div class="dmode"><span>Practice:</span><button data-q="first" class="on">Going first</button><button data-q="second">Going second</button></div>
+      </div>
+      <div id="playCtrls" style="display:none" class="panel">
+        <div class="ctrls">
+          <button id="pPhase" class="primary">Battle ▶</button><button id="pEnd">End turn</button><button id="pUndo" disabled>↶ Undo</button>
+          <button id="pSkill">⚡ Skill</button><button id="pWhat">💡 What now?</button><button id="pBest">🧠 Best play</button>
+          <button id="pBan">Banished (0)</button><button id="pOpp">Opponent’s cards</button><button id="pNew">New duel</button>
+        </div>
+        <div class="pstat" id="pstat"></div>
+        <div class="dmode" id="dmode">Drag cards to play them as:
+          <button data-m="a" class="on">Attack / activate</button><button data-m="d">Defense / Set</button></div>
+      </div>
+      <p class="hint" id="hint">Tap any card to see its art and full text.</p>
+    </div>
+  </div>
+
+  <div class="view" id="deckview"></div>
+</div>
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div id="mwrap" style="display:contents"></div></div>
+
+<script id="engineSrc">
+/* Blue-Eyes Speed Duel engine: real card effects for this 20-card deck + Skill, and a best-play solver. */
+(function (G) {
+'use strict';
+const C = {
+  BEWD: {n:'Blue-Eyes White Dragon', id:89631139, t:'m', lv:8, atk:3000, def:2500, race:'Dragon', normal:1, be:1, sub:'Normal Monster'},
+  ALT: {n:'Blue-Eyes Alternative White Dragon', id:38517737, t:'m', lv:8, atk:3000, def:2500, race:'Dragon', be:1, nomi:1, eff:1, sub:'Effect Monster'},
+  DSW: {n:'Dragon Spirit of White', id:45467446, t:'m', lv:8, atk:2500, def:2000, race:'Dragon', be:1, eff:1, sub:'Effect Monster'},
+  SAGE: {n:'Sage with Eyes of Blue', id:8240199, t:'m', lv:1, atk:0, def:1500, race:'Spellcaster', tuner:1, eff:1, sub:'Tuner Effect Monster'},
+  STONE: {n:'The White Stone of Ancients', id:71039903, t:'m', lv:1, atk:600, def:500, race:'Dragon', tuner:1, eff:1, sub:'Tuner Effect Monster'},
+  MEL: {n:'The Melody of Awakening Dragon', id:48800175, t:'s', sub:'Normal Spell'},
+  CON: {n:'Cards of Consonance', id:39701395, t:'s', sub:'Normal Spell'},
+  MST: {n:'Mystical Space Typhoon', id:5318639, t:'s', sub:'Quick-Play Spell', qp:1},
+  RB: {n:'Raigeki Break', id:4178474, t:'t', sub:'Normal Trap'},
+  BURST: {n:'Burst Stream of Destruction', id:17655904, t:'s', sub:'Normal Spell'},
+  AZ: {n:'Azure-Eyes Silver Dragon', id:40908371, t:'x', lv:9, atk:2500, def:3000, race:'Dragon', eff:1, sub:'Synchro Monster'},
+  SPI: {n:'Blue-Eyes Spirit Dragon', id:59822133, t:'x', lv:9, atk:2500, def:3000, race:'Dragon', be:1, eff:1, sub:'Synchro Monster'},
+  OM: {n:'Opponent’s monster', t:'om', atk:2000, def:1200, race:'Warrior'},
+  OD: {n:'Opponent’s wall', t:'om', atk:1000, def:2500, race:'Rock'},
+  OS: {n:'Opponent’s Set card', t:'os'},
+  UNK: {n:'(unknown draw)', t:'?'}
+};
+const DECK = ['BEWD','BEWD','BEWD','ALT','DSW','SAGE','SAGE','SAGE','STONE','STONE','STONE','MEL','MEL','MEL','CON','CON','MST','MST','RB','RB'];
+const EXTRA = ['AZ','SPI','SPI'];
+const N = c => C[c].n;
+const isMon = c => C[c].t === 'm' || C[c].t === 'x';
+const isST = c => C[c].t === 's' || C[c].t === 't';
+
+function rng(seed) { let x = (seed >>> 0) || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+function shuffle(a, r) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function clone(s) {
+  const cards = {}; for (const u in s.cards) cards[u] = Object.assign({}, s.cards[u]);
+  const z = {}; for (const k in s.z) z[k] = s.z[k].slice();
+  return {turn: s.turn, active: s.active, phase: s.phase, first: s.first, lp: {me: s.lp.me, opp: s.lp.opp}, cards: cards, uid: s.uid,
+    pend: s.pend.map(p => Object.assign({}, p)), log: [], win: s.win, z: z, f: Object.assign({}, s.f), sk: Object.assign({}, s.sk)};
+}
+
+function mk(s, c, zone, extra) {
+  const u = (C[c].t === 'om' || C[c].t === 'os' ? 'o' : 'c') + (++s.uid);
+  s.cards[u] = Object.assign({c: c, f: 'u', p: 'a'}, extra || {});
+  if (zone) s.z[zone].push(u);
+  return u;
+}
+
+/* opt: {first, seed, hand:[codes], order:[codes] (rest of deck top→bottom), opp:[codes]} */
+function newDuel(opt) {
+  opt = opt || {};
+  const first = opt.first !== false;
+  const s = {turn: first ? 1 : 2, active: 'me', phase: first ? 'main' : 'draw', first: first,
+    lp: {me: 4000, opp: 4000}, cards: {}, uid: 0, pend: [], log: [], win: null,
+    z: {deck: [], hand: [], gy: [], ban: [], ex: [], mz: [null, null, null], sz: [null, null, null], omz: [null, null, null], osz: [null, null, null], ogy: []},
+    f: {}, sk: {s1: 0, s2: 0}};
+  const pool = DECK.slice();
+  const hand = [];
+  (opt.hand || []).forEach(c => { const i = pool.indexOf(c); if (i >= 0) { pool.splice(i, 1); hand.push(c); } });
+  let rest;
+  if (opt.order) {
+    rest = [];
+    opt.order.forEach(c => { const i = pool.indexOf(c); if (i >= 0) { pool.splice(i, 1); rest.push(c); } });
+    rest = rest.concat(shuffle(pool, rng(opt.seed || 7)));
+  } else rest = shuffle(pool, rng(opt.seed || (Date.now() & 0x7fffffff)));
+  while (hand.length < 4 && rest.length) hand.push(rest.shift());
+  hand.forEach(c => mk(s, c, 'hand'));
+  rest.forEach(c => mk(s, c, 'deck', {f: 'd'}));
+  EXTRA.forEach(c => mk(s, c, 'ex', {f: 'd'}));
+  (opt.opp || []).forEach(c => addOppIn(s, c));
+  return s;
+}
+
+/* ---------- helpers ---------- */
+const cd = (s, u) => s.cards[u];
+const code = (s, u) => s.cards[u].c;
+const mine = s => s.z.mz.filter(Boolean);
+const oppM = s => s.z.omz.filter(Boolean);
+const oppS = s => s.z.osz.filter(Boolean);
+const free = (s, z) => s.z[z].indexOf(null);
+const nFree = (s, z) => s.z[z].filter(x => x === null).length;
+const handCodes = s => s.z.hand.map(u => code(s, u));
+const firstIn = (s, z, c) => s.z[z].find(u => u && code(s, u) === c);
+const has = (s, z, c) => !!firstIn(s, z, c);
+const up = (s, u) => cd(s, u).f === 'u';
+function distinct(list) { return Array.from(new Set(list)); }
+function bwName(s, u) { const c = code(s, u); return c === 'BEWD' || c === 'ALT'; } /* on field / GY */
+function isNormalField(s, u) { return code(s, u) === 'BEWD'; }
+function isNormalGY(s, u) { const c = code(s, u); return c === 'BEWD' || c === 'DSW'; }
+function prot(s, u) { const d = cd(s, u); return C[d.c].race === 'Dragon' && d.pr != null && d.pr >= s.turn; }
+function canTarget(s, u) { return !(s.z.mz.includes(u) && prot(s, u)); }
+function atkOf(s, u) { return C[code(s, u)].atk || 0; }
+function defOf(s, u) { return C[code(s, u)].def || 0; }
+
+function zoneOf(s, u) { for (const k in s.z) if (s.z[k].includes(u)) return k; return null; }
+function detach(s, u) {
+  for (const k in s.z) {
+    const a = s.z[k], i = a.indexOf(u);
+    if (i >= 0) { if (k === 'mz' || k === 'sz' || k === 'omz' || k === 'osz') a[i] = null; else a.splice(i, 1); return k; }
+  }
+  return null;
+}
+function clearField(d) { ['su','sy','au','na','at','pr','de','pc','st'].forEach(k => delete d[k]); d.f = 'u'; d.p = 'a'; }
+function send(s, u, to, opts) {
+  const from = detach(s, u), d = cd(s, u), opp = u[0] === 'o';
+  const fieldish = from === 'mz' || from === 'sz' || from === 'omz' || from === 'osz';
+  if (fieldish || from === 'hand' || from === 'deck' || from === 'gy') clearField(d);
+  if (to === 'gy') {
+    d.gt = s.turn; delete d.so; s.z[opp ? 'ogy' : 'gy'].push(u);
+  } else if (to === 'hand') { d.f = 'u'; s.z.hand.push(u); }
+  else if (to === 'ban') { d.f = 'u'; s.z.ban.push(u); }
+  else if (to === 'bottom') { d.f = 'd'; s.z.deck.push(u); }
+  else if (to === 'ex') { d.f = 'd'; s.z.ex.push(u); }
+  else if (to === 'mz' || to === 'sz' || to === 'omz' || to === 'osz') {
+    const i = s.z[to].indexOf(null); if (i < 0) throw new Error('no zone');
+    s.z[to][i] = u; Object.assign(d, opts || {});
+  }
+  return from;
+}
+function destroy(s, u) { const z = zoneOf(s, u); send(s, u, 'gy'); return z; }
+function draw(s, n, hidden) {
+  for (let i = 0; i < n; i++) {
+    if (!s.z.deck.length) { s.win = 'opp'; s.log.push('You can’t draw from an empty Deck, so you lose.'); return; }
+    if (hidden) { s.z.deck.shift(); mk(s, 'UNK', 'hand'); }
+    else { const u = s.z.deck.shift(); cd(s, u).f = 'u'; s.z.hand.push(u); }
+  }
+}
+function takeFromDeck(s, c) { const u = firstIn(s, 'deck', c); if (!u) return null; detach(s, u); return u; }
+function addOppIn(s, c) {
+  const zone = C[c].t === 'os' ? 'osz' : 'omz';
+  if (free(s, zone) < 0) return null;
+  const u = mk(s, c, null, c === 'OD' ? {p: 'd'} : c === 'OS' ? {f: 'd', p: 'a'} : {});
+  s.z[zone][free(s, zone)] = u; return u;
+}
+function addOpp(s, c) { const t = clone(s); t.log = []; return addOppIn(t, c) ? t : null; }
+function clearOpp(s) { const t = clone(s); t.z.omz = [null, null, null]; t.z.osz = [null, null, null]; t.log = []; return t; }
+
+/* ---------- move generation ---------- */
+function combos(arr, k) { const out = []; (function rec(st, cur) { if (cur.length === k) { out.push(cur.slice()); return; } for (let i = st; i < arr.length; i++) { cur.push(arr[i]); rec(i + 1, cur); cur.pop(); } })(0, []); return out; }
+function tribNeed(s, c) { const lv = C[c].lv; if (c === 'BEWD' && s.f.sk1 === s.turn) return 0; return lv <= 4 ? 0 : lv <= 6 ? 1 : 2; }
+function mv(o) { return o; }
+
+function moves(s, all) {
+  const out = [];
+  if (s.win) return out;
+  const T = s.turn;
+  if (s.pend.length) return pendMoves(s, all);
+  const myTurn = s.active === 'me';
+  const ph = s.phase;
+  const H = s.z.hand;
+  const hc = distinct(handCodes(s)).filter(c => c !== 'UNK');
+  const hu = c => H.find(u => code(s, u) === c);
+  const addHandDiscard = (exclude) => {
+    const pri = {STONE: 0, BEWD: 1, CON: 2, DSW: 3};
+    const list = H.filter(u => u !== exclude && code(s, u) !== 'UNK').sort((a, b) => (pri[code(s, a)] ?? 5) - (pri[code(s, b)] ?? 5));
+    const seen = {}; const r = [];
+    list.forEach(u => { const c = code(s, u); if (!seen[c]) { seen[c] = 1; r.push(u); } });
+    return r;
+  };
+  if (myTurn && ph === 'draw') {
+    if (!all) out.push({k: 'draw', t: 'Draw your card for the turn'});
+    if (!s.sk.s1 && has(s, 'deck', 'BEWD') && free(s, 'sz') >= 0)
+      out.push({k: 'sk1', t: 'Use your Skill’s first effect: Set Burst Stream of Destruction and draw Blue-Eyes White Dragon', src: 'skill'});
+    if (all) out.push({k: 'draw', t: 'Draw your card for the turn'});
+    return out;
+  }
+  const quick = [];
+  /* Raigeki Break (Set, from a later turn) */
+  s.z.sz.forEach(u => {
+    if (!u) return; const d = cd(s, u);
+    if (d.c === 'RB' && d.f === 'd' && d.st < T && H.some(h => code(s, h) !== 'UNK')) {
+      const tg = oppM(s).concat(oppS(s));
+      if (all) mine(s).concat(s.z.sz.filter(x => x && x !== u)).forEach(x => { if (canTarget(s, x)) tg.push(x); });
+      addHandDiscard(null).forEach(dh => tg.forEach(t => quick.push({k: 'rb', src: u, d: dh, tg: t,
+        t: 'Activate Raigeki Break: discard ' + N(code(s, dh)) + ', destroy ' + N(code(s, t))})));
+    }
+    if (d.c === 'MST' && d.f === 'd' && d.st < T) {
+      const tg = oppS(s).slice(); if (all) s.z.sz.forEach(x => { if (x && x !== u) tg.push(x); });
+      tg.forEach(t => quick.push({k: 'mst', src: u, tg: t, t: 'Activate your Set Mystical Space Typhoon on ' + N(code(s, t))}));
+    }
+  });
+  mine(s).forEach(u => {
+    const d = cd(s, u); if (d.f !== 'u') return;
+    if (d.c === 'DSW' && oppM(s).length && has(s, 'hand', 'BEWD'))
+      ['a'].concat(all ? ['d'] : []).forEach(p => quick.push({k: 'dswq', src: u, p: p, t: 'Dragon Spirit of White’s Quick Effect: Tribute it to Special Summon Blue-Eyes White Dragon from your hand' + (p === 'd' ? ' in Defense Position' : '')}));
+    if (d.c === 'SPI' && d.sy && has(s, 'ex', 'AZ'))
+      quick.push({k: 'spit', src: u, t: 'Tribute Blue-Eyes Spirit Dragon to Special Summon Azure-Eyes Silver Dragon in Defense Position'});
+  });
+  if (!myTurn) {
+    out.push(...quick);
+    out.push({k: 'oend', t: 'Opponent ends their turn'});
+    return out;
+  }
+  if (ph === 'main') {
+    /* Normal Summon / Set */
+    ['SAGE','STONE','BEWD','DSW'].forEach(c => {
+      if (!hc.includes(c)) return;
+      const reg = s.f.ns !== T, extra = c === 'BEWD' && s.f.sk1 === T && s.f.xns !== T;
+      const need = tribNeed(s, c);
+      const trs = need === 0 ? [[]] : combos(mine(s).filter(u => canTargetTrib(s, u)), need);
+      trs.forEach(tr => {
+        if (need === 0 && free(s, 'mz') < 0) return;
+        const tt = tr.length ? ' by Tributing ' + tr.map(u => N(code(s, u))).join(' and ') : '';
+        if (reg || extra) out.push({k: 'ns', src: hu(c), c: c, tr: tr, t: 'Normal Summon ' + N(c) + tt + (c === 'BEWD' && need === 0 && C[c].lv > 4 ? ' (no Tribute needed, thanks to your Skill)' : '')});
+        if (reg && all) out.push({k: 'ns', src: hu(c), c: c, tr: tr, set: 1, t: 'Set ' + N(c) + ' face-down' + tt});
+      });
+    });
+    /* Alternative */
+    if (hc.includes('ALT') && hc.includes('BEWD') && s.f.alt !== T && free(s, 'mz') >= 0)
+      ['a'].concat(all ? ['d'] : []).forEach(p => out.push({k: 'alt', src: hu('ALT'), p: p, t: 'Special Summon Blue-Eyes Alternative White Dragon by revealing Blue-Eyes White Dragon' + (p === 'd' ? ' (Defense Position)' : '')}));
+    /* Melody */
+    if (hc.includes('MEL') && free(s, 'sz') >= 0) {
+      const mu = hu('MEL');
+      const nb = s.z.deck.filter(u => code(s, u) === 'BEWD').length, na = s.z.deck.filter(u => code(s, u) === 'ALT').length;
+      const adds = [];
+      if (nb >= 2) adds.push(['BEWD', 'BEWD']); if (nb && na) adds.push(['BEWD', 'ALT']);
+      if (all || !adds.length) { if (nb) adds.push(['BEWD']); if (na) adds.push(['ALT']); }
+      addHandDiscard(mu).forEach(dh => adds.forEach(a => out.push({k: 'mel', src: mu, d: dh, a: a,
+        t: 'Activate The Melody of Awakening Dragon: discard ' + N(code(s, dh)) + ', add ' + a.map(N).join(' and ')})));
+    }
+    /* Consonance */
+    if (hc.includes('CON') && hc.includes('STONE') && free(s, 'sz') >= 0 && s.z.deck.length >= 2)
+      out.push({k: 'con', src: hu('CON'), t: 'Activate Cards of Consonance: discard The White Stone of Ancients, draw 2'});
+    /* MST from hand */
+    if (hc.includes('MST') && free(s, 'sz') >= 0) {
+      const tg = oppS(s).slice(); if (all) s.z.sz.forEach(x => { if (x) tg.push(x); });
+      tg.forEach(t => out.push({k: 'mst', src: hu('MST'), tg: t, t: 'Activate Mystical Space Typhoon on ' + N(code(s, t))}));
+    }
+    /* Set Spells/Traps */
+    if (all && free(s, 'sz') >= 0) hc.filter(c => isST(c)).forEach(c => {
+      out.push({k: 'set', src: hu(c), c: c, t: 'Set ' + N(c) + ' face-down'});
+    });
+    /* Burst Stream */
+    s.z.sz.forEach(u => {
+      if (u && code(s, u) === 'BURST' && oppM(s).length && mine(s).some(m => up(s, m) && bwName(s, m)))
+        out.push({k: 'burst', src: u, t: 'Activate Burst Stream of Destruction: destroy all your opponent’s monsters'});
+    });
+    /* Sage’s hand effect */
+    if (hc.includes('SAGE') && s.f.sage !== T) {
+      const tgts = mine(s).filter(u => up(s, u) && C[code(s, u)].eff && canTarget(s, u));
+      const sum = ['BEWD', 'DSW'].filter(c => has(s, 'deck', c));
+      tgts.forEach(t => sum.forEach(c => ['a'].concat(all ? ['d'] : []).forEach(p => out.push({k: 'sage', src: hu('SAGE'), tg: t, c: c, p: p,
+        t: 'Sage with Eyes of Blue’s effect: discard it, send ' + N(code(s, t)) + ' to the GY, Special Summon ' + N(c) + ' from your Deck' + (p === 'd' ? ' in Defense Position' : '')}))));
+    }
+    /* White Stone GY effect */
+    if (s.f.st2 !== T) s.z.gy.forEach(u => {
+      if (code(s, u) !== 'STONE') return;
+      distinct(s.z.gy.filter(x => x !== u && ['BEWD', 'ALT', 'DSW'].includes(code(s, x))).map(x => code(s, x))).forEach(c => {
+        const fresh = cd(s, u).gt === T && cd(s, u).so !== T;
+        out.push({k: 'st2', src: u, tg: s.z.gy.find(x => code(s, x) === c), t: 'Banish The White Stone of Ancients from your GY to add ' + N(c) + ' from your GY to your hand' + (fresh ? ' (this White Stone went to the GY this turn, so it gives up its End Phase summon)' : '')});
+      });
+    });
+    /* Alternative destroy */
+    mine(s).forEach(u => {
+      const d = cd(s, u);
+      if (d.c === 'ALT' && d.f === 'u' && d.au !== T) oppM(s).forEach(t => out.push({k: 'altd', src: u, tg: t, t: 'Blue-Eyes Alternative White Dragon’s effect: destroy ' + N(code(s, t)) + ' (Alternative can’t attack this turn)'}));
+    });
+    /* Synchro */
+    ['AZ', 'SPI'].forEach(x => {
+      if (!has(s, 'ex', x)) return;
+      const tun = mine(s).filter(u => up(s, u) && C[code(s, u)].tuner);
+      const non = mine(s).filter(u => up(s, u) && !C[code(s, u)].tuner && C[code(s, u)].lv === 8 && (x === 'AZ' ? isNormalField(s, u) : C[code(s, u)].be));
+      tun.forEach(t => non.forEach(n => ['a'].concat(all ? ['d'] : []).forEach(p => out.push({k: 'syn', src: firstIn(s, 'ex', x), c: x, m: [t, n], p: p,
+        t: 'Synchro Summon ' + N(x) + ' using ' + N(code(s, t)) + ' (Level 1 Tuner) + ' + N(code(s, n)) + ' (Level 8)' + (p === 'd' ? ' in Defense Position' : '')}))));
+    });
+    /* Skill 2 */
+    if (!s.sk.s2) hc.filter(c => C[c].t === 'm').forEach(c => {
+      out.push({k: 'sk2', src: 'skill', c: c, to: 'gy', t: 'Use your Skill’s second effect: reveal ' + N(c) + ', send it to the GY, draw 2'});
+      if (all) out.push({k: 'sk2', src: 'skill', c: c, to: 'bot', t: 'Use your Skill’s second effect: reveal ' + N(c) + ', put it on the bottom of your Deck, draw 2'});
+    });
+    out.push(...quick);
+    if (all) mine(s).forEach(u => {
+      const d = cd(s, u);
+      if (d.su === T || d.pc === T) return;
+      if (d.f === 'd') out.push({k: 'flip', src: u, t: 'Flip Summon ' + N(d.c)});
+      else out.push({k: 'pos', src: u, t: 'Change ' + N(d.c) + ' to ' + (d.p === 'a' ? 'Defense' : 'Attack') + ' Position'});
+    });
+    if (!(s.first && T === 1)) out.push({k: 'bp', t: 'Go to the Battle Phase'});
+    out.push({k: 'end', t: 'End your turn'});
+    if (!all) { const st = autoSets(s); if (st.length) out.forEach(m => { if (m.k === 'bp' || m.k === 'end') m.sets = st; });
+      const bi = out.findIndex(m => m.k === 'bp'); if (bi > 0) out.unshift(out.splice(bi, 1)[0]); }
+    return out;
+  }
+  if (ph === 'battle') {
+    attackers(s).forEach(a => {
+      const om = oppM(s);
+      if (om.length) om.forEach(t => out.push({k: 'atk', src: a, tg: t, t: 'Attack ' + N(code(s, t)) + ' with ' + N(code(s, a))}));
+      else out.push({k: 'atk', src: a, tg: null, t: 'Attack directly with ' + N(code(s, a))});
+    });
+    out.push(...quick);
+    out.push({k: 'end', t: 'End your turn'});
+    return out;
+  }
+  return out;
+}
+function canTargetTrib(s, u) { return true; }
+/* solver: Set every Raigeki Break / Mystical Space Typhoon that fits, Raigeki first, right before battling or ending */
+function autoSets(s) {
+  let n = nFree(s, 'sz'); const out = [];
+  ['RB', 'MST'].forEach(c => s.z.hand.forEach(u => { if (n > 0 && code(s, u) === c) { out.push({u: u, c: c}); n--; } }));
+  return out;
+}
+function expand(line) {
+  const out = [];
+  line.forEach(m => {
+    if (m.sets && m.sets.length) {
+      m.sets.forEach(x => out.push({k: 'set', src: x.u, c: x.c, t: 'Set ' + N(x.c) + ' face-down'}));
+      const x = Object.assign({}, m); delete x.sets; out.push(x);
+    } else out.push(m);
+  });
+  return out;
+}
+function attackers(s) {
+  const T = s.turn;
+  if (s.first && T === 1) return [];
+  return mine(s).filter(u => {
+    const d = cd(s, u);
+    if (d.f !== 'u' || d.p !== 'a' || d.at === T || d.na === T) return false;
+    if (s.f.burst === T && bwName(s, u)) return false;
+    return true;
+  });
+}
+function pendMoves(s, all) {
+  const p = s.pend[0], out = [];
+  if (p.k === 'sage') {
+    if (has(s, 'deck', 'STONE')) out.push({k: 'p_sage', add: 1, t: 'Sage’s effect: add The White Stone of Ancients from your Deck to your hand'});
+    out.push({k: 'p_sage', add: 0, t: 'Don’t use Sage’s search'});
+  } else if (p.k === 'dsw') {
+    oppS(s).forEach(t => out.push({k: 'p_dsw', tg: t, t: 'Dragon Spirit of White’s effect: banish ' + N(code(s, t))}));
+    out.push({k: 'p_dsw', tg: null, t: 'Don’t banish anything'});
+  } else if (p.k === 'stone') {
+    if (free(s, 'mz') >= 0) ['BEWD', 'DSW'].filter(c => has(s, 'deck', c)).forEach(c => ['a'].concat(all ? ['d'] : []).forEach(pp =>
+      out.push({k: 'p_stone', c: c, p: pp, t: 'White Stone’s End Phase effect: Special Summon ' + N(c) + ' from your Deck' + (pp === 'd' ? ' in Defense Position' : '')})));
+    out.push({k: 'p_stone', c: null, t: 'Don’t use White Stone’s End Phase effect'});
+  } else if (p.k === 'azure') {
+    if (free(s, 'mz') >= 0) distinct(s.z.gy.filter(u => isNormalGY(s, u)).map(u => code(s, u))).forEach(c => ['a'].concat(all ? ['d'] : []).forEach(pp =>
+      out.push({k: 'p_azure', c: c, p: pp, t: 'Azure-Eyes’ Standby Phase effect: Special Summon ' + N(c) + ' from your GY' + (pp === 'd' ? ' in Defense Position' : '')})));
+    out.push({k: 'p_azure', c: null, t: 'Don’t use Azure-Eyes’ effect'});
+  }
+  return out;
+}
+
+/* ---------- applying moves ---------- */
+function summonTriggers(s, u, how) {
+  const c = code(s, u);
+  if (c === 'SAGE' && how === 'ns' && has(s, 'deck', 'STONE')) s.pend.push({k: 'sage', u: u});
+  if (c === 'DSW' && (how === 'ns' || how === 'ss') && oppS(s).length) s.pend.push({k: 'dsw', u: u});
+  if (c === 'AZ') { mine(s).forEach(m => { const d = cd(s, m); if (d.f === 'u' && C[d.c].race === 'Dragon') d.pr = s.turn + 1; }); s.log.push('Azure-Eyes protects your Dragons until the end of the next turn.'); }
+}
+function apply(s0, m, opt) {
+  const s = clone(s0); s.log = [];
+  const hidden = opt && opt.hidden;
+  const T = s.turn;
+  switch (m.k) {
+    case 'draw': draw(s, 1, hidden); s.phase = 'standby'; break;
+    case 'sk1': {
+      s.sk.s1 = 1; s.f.sk1 = T;
+      const b = mk(s, 'BURST', null); s.z.sz[free(s, 'sz')] = b; Object.assign(cd(s, b), {f: 'd', st: T});
+      const u = takeFromDeck(s, 'BEWD'); if (u) { cd(s, u).f = 'u'; s.z.hand.push(u); }
+      s.phase = 'standby'; break;
+    }
+    case 'ns': {
+      m.tr.forEach(u => send(s, u, 'gy'));
+      const u = handUid(s, m);
+      if (m.set) { s.f.ns = T; send(s, u, 'mz', {f: 'd', p: 'd', su: T}); }
+      else {
+        if (m.c === 'BEWD' && s.f.sk1 === T && s.f.xns !== T) s.f.xns = T; else s.f.ns = T;
+        send(s, u, 'mz', {f: 'u', p: 'a', su: T}); summonTriggers(s, u, 'ns');
+      }
+      break;
+    }
+    case 'alt': { s.f.alt = T; const u = handUid(s, m); send(s, u, 'mz', {f: 'u', p: m.p || 'a', su: T}); break; }
+    case 'mel': {
+      const u = handUid(s, m); send(s, m.d, 'gy');
+      m.a.forEach(c => { const x = takeFromDeck(s, c); if (x) { cd(s, x).f = 'u'; s.z.hand.push(x); } });
+      send(s, u, 'gy'); break;
+    }
+    case 'con': { const u = handUid(s, m); send(s, firstIn(s, 'hand', 'STONE'), 'gy'); draw(s, 2, hidden); send(s, u, 'gy'); break; }
+    case 'mst': { const u = m.src && s.cards[m.src] ? m.src : firstIn(s, 'hand', 'MST'); destroy(s, m.tg); send(s, u, 'gy'); break; }
+    case 'set': { const u = handUid(s, m); send(s, u, 'sz', {f: 'd', st: T}); break; }
+    case 'rb': { send(s, m.d, 'gy'); destroy(s, m.tg); send(s, m.src, 'gy'); break; }
+    case 'burst': { s.f.burst = T; oppM(s).forEach(u => destroy(s, u)); send(s, m.src, 'gy'); break; }
+    case 'sage': {
+      s.f.sage = T; const u = handUid(s, m); send(s, u, 'gy'); send(s, m.tg, 'gy');
+      const x = takeFromDeck(s, m.c); if (x) { s.z.mz[free(s, 'mz')] = x; Object.assign(cd(s, x), {f: 'u', p: m.p || 'a', su: T}); summonTriggers(s, x, 'ss'); }
+      break;
+    }
+    case 'st2': { s.f.st2 = T; send(s, m.src, 'ban'); send(s, m.tg, 'hand'); break; }
+    case 'altd': { cd(s, m.src).au = T; cd(s, m.src).na = T; destroy(s, m.tg); break; }
+    case 'dswq': { send(s, m.src, 'gy'); const b = firstIn(s, 'hand', 'BEWD'); send(s, b, 'mz', {f: 'u', p: m.p || 'a', su: T}); break; }
+    case 'spit': {
+      send(s, m.src, 'gy'); const a = firstIn(s, 'ex', 'AZ'); detach(s, a); s.z.mz[free(s, 'mz')] = a;
+      Object.assign(cd(s, a), {f: 'u', p: 'd', su: T, de: T}); summonTriggers(s, a, 'ss'); break;
+    }
+    case 'syn': {
+      m.m.forEach(u => send(s, u, 'gy'));
+      const x = s.cards[m.src] && s.z.ex.includes(m.src) ? m.src : firstIn(s, 'ex', m.c);
+      detach(s, x); s.z.mz[free(s, 'mz')] = x; Object.assign(cd(s, x), {f: 'u', p: m.p || 'a', su: T, sy: 1}); summonTriggers(s, x, 'ss'); break;
+    }
+    case 'sk2': {
+      s.sk.s2 = 1; const u = firstIn(s, 'hand', m.c);
+      if (m.to === 'gy') send(s, u, 'gy'); else send(s, u, 'bottom');
+      draw(s, 2, hidden); break;
+    }
+    case 'flip': { const d = cd(s, m.src); d.f = 'u'; d.p = 'a'; d.pc = T; break; }
+    case 'pos': { const d = cd(s, m.src); d.p = d.p === 'a' ? 'd' : 'a'; d.pc = T; break; }
+    case 'bp': doSets(s, m); s.phase = 'battle'; break;
+    case 'atk': battle(s, m.src, m.tg); break;
+    case 'end': {
+      doSets(s, m); s.phase = 'end';
+      s.z.gy.forEach(u => { const d = cd(s, u); if (d.c === 'STONE' && d.gt === T && d.so !== T) s.pend.push({k: 'stone', u: u}); });
+      break;
+    }
+    case 'oend': endOfTurn(s); s.turn++; s.active = 'me'; s.phase = 'draw'; break;
+    case 'p_sage': { s.pend.shift(); if (m.add) { const x = takeFromDeck(s, 'STONE'); if (x) { cd(s, x).f = 'u'; s.z.hand.push(x); } } break; }
+    case 'p_dsw': { s.pend.shift(); if (m.tg && zoneOf(s, m.tg)) send(s, m.tg, 'ban'); break; }
+    case 'p_stone': {
+      const p = s.pend.shift(); cd(s, p.u).so = T;
+      if (m.c) { const x = takeFromDeck(s, m.c); if (x) { s.z.mz[free(s, 'mz')] = x; Object.assign(cd(s, x), {f: 'u', p: m.p || 'a', su: T}); summonTriggers(s, x, 'ss'); } }
+      break;
+    }
+    case 'p_azure': {
+      s.pend.shift(); s.f.az = T;
+      if (m.c) { const x = s.z.gy.find(u => code(s, u) === m.c); detach(s, x); clearField(cd(s, x)); delete cd(s, x).gt; s.z.mz[free(s, 'mz')] = x; Object.assign(cd(s, x), {f: 'u', p: m.p || 'a', su: T}); summonTriggers(s, x, 'ss'); }
+      break;
+    }
+    default: throw new Error('unknown move ' + m.k);
+  }
+  normalize(s);
+  return s;
+}
+function doSets(s, m) { (m.sets || []).forEach(x => { const u = x.u; if (s.z.hand.includes(u) && free(s, 'sz') >= 0) send(s, u, 'sz', {f: 'd', st: s.turn}); }); }
+function handUid(s, m) { if (m.src && s.z.hand.includes(m.src)) return m.src; return firstIn(s, 'hand', m.c || code(s, m.src)); }
+function battle(s, a, t) {
+  const T = s.turn, da = cd(s, a); da.at = T; const A = atkOf(s, a);
+  if (!t) { s.lp.opp -= A; s.log.push(N(da.c) + ' attacks directly for ' + A + '.'); }
+  else {
+    const dt = cd(s, t);
+    if (dt.f === 'd') dt.f = 'u';
+    if (dt.p === 'a') {
+      const B = atkOf(s, t);
+      if (A > B) { destroy(s, t); s.lp.opp -= A - B; s.log.push(N(da.c) + ' destroys ' + N(dt.c) + ': ' + (A - B) + ' damage.'); }
+      else if (A < B) { if (!(prot(s, a) && false)) destroy(s, a); s.lp.me -= B - A; s.log.push(N(da.c) + ' loses the battle: you take ' + (B - A) + '.'); }
+      else { destroy(s, t); destroy(s, a); s.log.push('Equal ATK: both are destroyed.'); }
+    } else {
+      const D = defOf(s, t);
+      if (A > D) { destroy(s, t); s.log.push(N(da.c) + ' destroys ' + N(dt.c) + ' (Defense Position, no damage).'); }
+      else if (A < D) { s.lp.me -= D - A; s.log.push(N(dt.c) + '’s DEF is higher: you take ' + (D - A) + '.'); }
+    }
+  }
+  if (s.lp.opp <= 0) { s.lp.opp = 0; s.win = 'me'; }
+  if (s.lp.me <= 0) { s.lp.me = 0; s.win = 'opp'; }
+}
+function endOfTurn(s) {
+  const T = s.turn;
+  mine(s).forEach(u => { const d = cd(s, u); if (d.de === T) { if (prot(s, u)) s.log.push('Azure-Eyes can’t be destroyed by card effects, so it stays.'); else { send(s, u, 'gy'); s.log.push(N(d.c) + ' is destroyed in the End Phase.'); } } });
+}
+function normalize(s) {
+  for (let g = 0; g < 6; g++) {
+    if (s.win) return;
+    if (s.pend.length) {
+      const p = s.pend[0];
+      if (p.k === 'sage' && !has(s, 'deck', 'STONE')) { s.pend.shift(); continue; }
+      if (p.k === 'dsw' && !oppS(s).length) { s.pend.shift(); continue; }
+      if (p.k === 'stone' && (free(s, 'mz') < 0 || !['BEWD', 'DSW'].some(c => has(s, 'deck', c)))) { cd(s, p.u).so = s.turn; s.pend.shift(); continue; }
+      if (p.k === 'azure' && (free(s, 'mz') < 0 || !s.z.gy.some(u => isNormalGY(s, u)))) { s.pend.shift(); continue; }
+      return;
+    }
+    if (s.active === 'me' && s.phase === 'standby') {
+      if (!s.f.sb || s.f.sb !== s.turn) {
+        s.f.sb = s.turn;
+        mine(s).forEach(u => { if (code(s, u) === 'AZ' && up(s, u) && s.f.az !== s.turn && s.z.gy.some(x => isNormalGY(s, x)) && free(s, 'mz') >= 0) s.pend.push({k: 'azure', u: u}); });
+        if (s.pend.length) continue;
+      }
+      s.phase = 'main'; continue;
+    }
+    if (s.active === 'me' && s.phase === 'end') { endOfTurn(s); s.active = 'opp'; s.phase = 'opp'; s.turn++; return; }
+    return;
+  }
+}
+
+/* ---------- evaluation + solver ---------- */
+const HV = {MEL: 1.3, CON: 0.7, SAGE: 1.2, STONE: 0.9, BEWD: 0.8, ALT: 1.0, DSW: 0.9, MST: 0.9, RB: 1.0, UNK: 1.0, BURST: 0.5};
+const FV = {SPI: 5.0, AZ: 4.4, BEWD: 3.0, ALT: 3.3, DSW: 2.7, SAGE: 0.4, STONE: 0.5};
+function evaluate(s) {
+  if (s.win === 'me') return 1000;
+  if (s.win === 'opp') return -1000;
+  let v = 0;
+  const az = mine(s).some(u => code(s, u) === 'AZ');
+  const azEx = has(s, 'ex', 'AZ');
+  mine(s).forEach(u => { const d = cd(s, u); let x = FV[d.c] || 0; if (d.c === 'SPI' && d.sy && azEx) x += 0.9; if (d.f === 'd') x *= 0.9; else if (d.p === 'd' && d.c !== 'AZ' && d.c !== 'SPI') x -= 0.3; if (prot(s, u)) x += 0.4; v += x; });
+  const bwOn = mine(s).some(u => up(s, u) && bwName(s, u));
+  s.z.sz.forEach(u => { if (!u) return; const c = code(s, u); v += c === 'RB' ? 1.4 : c === 'MST' ? 1.0 : c === 'BURST' ? (bwOn ? 1.8 : 0.9) : 0.2; });
+  const hcs = handCodes(s);
+  hcs.forEach(c => { let x = HV[c] || 0.5; if (c === 'CON' && hcs.includes('STONE')) x = 1.1; v += x; });
+  s.z.gy.forEach(u => { const c = code(s, u); if (c === 'STONE') v += 0.45; if (c === 'BEWD' || c === 'DSW') v += 0.2 + (az ? 0.6 : 0); });
+  v -= oppM(s).length * 2.5 + oppS(s).length * 1.0;
+  v += (4000 - s.lp.opp) / 1000 * 1.5 - (4000 - s.lp.me) / 1000 * 1.5;
+  if (!s.sk.s1) v += 1.0; if (!s.sk.s2) v += 0.8;
+  return v;
+}
+function sig(s, u) {
+  const d = cd(s, u), T = s.turn; let x = d.c + d.f + d.p;
+  if (d.sy) x += 'S'; if (d.gt === T) x += 'g'; if (d.au === T) x += 'a'; if (d.na === T) x += 'n'; if (d.at === T) x += 't';
+  if (d.pr != null && d.pr >= T) x += 'p' + (d.pr - T); if (d.de === T) x += 'e'; if (d.st != null && d.st >= T) x += 's'; if (d.so === T) x += 'o'; if (d.su === T) x += 'u'; if (d.pc === T) x += 'c';
+  return x;
+}
+function key(s) {
+  const T = s.turn, z = s.z, f = s.f;
+  const L = k => z[k].filter(Boolean).map(u => sig(s, u)).sort().join(',');
+  return [s.phase, s.active, T, s.win, L('hand'), L('mz'), L('sz'), L('gy'), L('ban'), L('omz'), L('osz'), L('ex'), z.deck.map(u => code(s, u)).sort().join(','),
+    f.ns === T, f.xns === T, f.sk1 === T, f.alt === T, f.sage === T, f.st2 === T, f.burst === T, f.az === T, s.sk.s1, s.sk.s2,
+    s.pend.map(p => p.k + sig(s, p.u)).join(';'), s.lp.me, s.lp.opp].join('|');
+}
+function terminal(s) { return s.win || s.active !== 'me'; }
+function solve(s0, opt) {
+  opt = opt || {};
+  const memo = new Map(); let nodes = 0; const LIMIT = opt.limit || 60000;
+  function dfs(s) {
+    if (terminal(s)) return {v: evaluate(s), line: []};
+    const k = key(s); const hit = memo.get(k); if (hit) return hit;
+    if (++nodes > LIMIT) { const r = {v: evaluate(s) - 0.01, line: [], cut: 1}; return r; }
+    let best = null; const seen = new Set();
+    for (const m of moves(s, false)) {
+      const t = apply(s, m, {hidden: true});
+      const tk = key(t); if (seen.has(tk)) continue; seen.add(tk);
+      const r = dfs(t);
+      const val = r.v - 0.001 * (r.line.length + 1);
+      if (!best || val > best.score) best = {score: val, v: r.v, line: [m].concat(r.line)};
+      if (r.v >= 1000) break;
+    }
+    const res = best ? {v: best.v, line: best.line} : {v: evaluate(s), line: []};
+    memo.set(k, res); return res;
+  }
+  const r = dfs(s0); return {v: r.v, line: expand(r.line), nodes: nodes, cut: nodes > LIMIT};
+}
+/* the line only up to (and including) the first card draw, since what follows depends on unknown cards */
+function drawsCards(m) { return m.k === 'draw' || m.k === 'con' || m.k === 'sk2'; }
+function sameMove(a, b) { return a.t === b.t; }
+function find(s, m) {
+  const c = moves(s, true).filter(x => x.t === m.t && x.k === m.k);
+  return c.find(x => x.src === m.src && x.tg === m.tg && x.d === m.d) || c.find(x => x.src === m.src) || c[0] || null;
+}
+
+/* teaching notes for each kind of move */
+function why(s, m) {
+  switch (m.k) {
+    case 'sk1': return 'Your Skill’s first effect only works before your normal draw, once per Duel. You get a free Set Burst Stream of Destruction, your draw becomes Blue-Eyes White Dragon, and this turn you can Normal Summon Blue-Eyes without Tributing, plus 1 extra Normal Summon of it.';
+    case 'draw': return 'Speed Duel: you draw 1 card each turn, except the player going first skips the draw on turn 1.';
+    case 'ns': if (m.c === 'SAGE') return 'Sage is your best starter: its Normal Summon effect searches The White Stone of Ancients.'; if (m.c === 'BEWD') return m.tr.length ? 'Blue-Eyes is Level 8, so a normal Tribute Summon needs 2 Tributes. Tributed White Stone goes to the GY, which sets up its End Phase effect.' : 'With your Skill active this turn, Blue-Eyes White Dragon needs no Tributes.'; if (m.c === 'STONE') return 'White Stone is a Level 1 Tuner, so it can be Synchro material with a Level 8 Blue-Eyes for a Level 9 Synchro.'; return 'You get 1 Normal Summon or Set per turn.';
+    case 'alt': return 'Alternative can’t be Normal Summoned. You Special Summon it by revealing Blue-Eyes White Dragon in your hand, which doesn’t use your Normal Summon.';
+    case 'mel': return m.d && code(s, m.d) === 'STONE' ? 'Melody adds 2 Blue-Eyes for the cost of 1 discard. Discarding White Stone is ideal: it’s now in the GY this turn, so it summons a Blue-Eyes in the End Phase.' : 'Melody adds 2 Blue-Eyes for the cost of 1 discard. ' + (m.a && m.a.includes('ALT') ? 'Taking Alternative means you can Special Summon it right away by revealing the other Blue-Eyes.' : '');
+    case 'con': return 'Cards of Consonance discards a Dragon Tuner with 1000 or less ATK. White Stone qualifies, so you draw 2 and set up White Stone’s End Phase summon.';
+    case 'mst': return 'Mystical Space Typhoon removes a Spell or Trap. It’s a Quick-Play Spell, so you can also Set it and use it on your opponent’s turn.';
+    case 'set': return m.c === 'RB' ? 'Traps must be Set first and can be activated from your opponent’s next turn onward. Raigeki Break is your answer to their best card.' : 'Setting a Quick-Play Spell lets you use it during your opponent’s turn.';
+    case 'rb': return 'Raigeki Break’s cost is discarding 1 card.' + (m.d && code(s, m.d) === 'STONE' && s.active === 'me' ? ' Discarding White Stone on your own turn also sets up its End Phase summon.' : '');
+    case 'burst': return 'Burst Stream needs you to control Blue-Eyes White Dragon (Alternative counts, since its name becomes Blue-Eyes White Dragon on the field). Your Blue-Eyes White Dragons can’t attack this turn.';
+    case 'sage': return 'Sage’s second effect: discard it from your hand and send an Effect Monster you control to the GY to Special Summon a Blue-Eyes from your Deck. Alternative can’t be summoned this way, because it must be Special Summoned with its own reveal first.';
+    case 'st2': return 'White Stone’s GY effect banishes it to add a Blue-Eyes from your GY to your hand. Don’t use it the same turn it was sent if you still want the End Phase summon.';
+    case 'altd': return 'Alternative destroys 1 of your opponent’s monsters once per turn, but then it can’t attack that turn.';
+    case 'syn': return m.c === 'AZ' ? 'Azure-Eyes needs a Tuner plus a Normal Monster. Only the real Blue-Eyes White Dragon counts as Normal on the field. When it’s Special Summoned, your Dragons can’t be targeted or destroyed by card effects until the end of the next turn.' : 'Blue-Eyes Spirit Dragon takes a Tuner plus any Blue-Eyes non-Tuner. Levels add up: 1 + 8 = 9. It can negate an effect activated in the GY once per turn.';
+    case 'spit': return 'Tributing Spirit Dragon summons Azure-Eyes in Defense Position. Azure would be destroyed in the End Phase, but its own effect protects it from card destruction, so it stays.';
+    case 'dswq': return 'Dragon Spirit of White can Tribute itself as a Quick Effect while your opponent controls a monster, swapping into a 3000 ATK Blue-Eyes from your hand.';
+    case 'sk2': return 'Your Skill’s second effect turns a monster in hand into 2 new cards, once per Duel. Sending White Stone to the GY also sets up its End Phase summon.';
+    case 'bp': return 'Speed Duel has no Main Phase 2, so make all your plays before you battle.';
+    case 'atk': return 'Attack the monsters you can beat first, then attack directly once their field is clear.';
+    case 'end': return 'Ending your turn moves to the End Phase, when White Stone’s effect can summon a Blue-Eyes from your Deck.';
+    case 'p_sage': return 'Sage searches White Stone, the Tuner that fuels your Synchros and End Phase summons.';
+    case 'p_stone': return 'White Stone went to the GY this turn, so in the End Phase it Special Summons a Blue-Eyes from your Deck.';
+    case 'p_azure': return 'During your Standby Phase, Azure-Eyes revives a Normal Monster from your GY. Dragon Spirit of White counts as Normal while in the GY.';
+    case 'p_dsw': return 'Dragon Spirit of White banishes 1 of your opponent’s Spells or Traps when it’s summoned.';
+    case 'oend': return 'Your opponent’s turn ends and yours begins.';
+  }
+  return '';
+}
+
+G.BE = {C, DECK, EXTRA, N, newDuel, moves, apply, solve, evaluate, key, find, why, addOpp, clearOpp, drawsCards, attackers, expand, autoSets, prot, zoneOf, clone, rng, shuffle, tribNeed};
+if (typeof module !== 'undefined') module.exports = G.BE;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+const TEXTS = {"BEWD": "This legendary dragon is a powerful engine of destruction. Virtually invincible, very few have faced this awesome creature and lived to tell the tale.", "ALT": "Cannot be Normal Summoned/Set. Must first be Special Summoned (from your hand) by revealing \"Blue-Eyes White Dragon\" in your hand. You can only Special Summon \"Blue-Eyes Alternative White Dragon\" once per turn this way. This card's name becomes \"Blue-Eyes White Dragon\" while it is on the field or in the Graveyard. Once per turn: You can target 1 monster your opponent controls; destroy it. This card cannot attack the turn this effect is activated.", "DSW": "(This card is always treated as a \"Blue-Eyes\" card.)\nThis card is treated as a Normal Monster while in the hand or GY. When this card is Normal or Special Summoned: You can target 1 Spell/Trap your opponent controls; banish it. If your opponent controls a monster (Quick Effect): You can Tribute this card; Special Summon 1 \"Blue-Eyes White Dragon\" from your hand.", "SAGE": "When this card is Normal Summoned: You can add 1 Level 1 LIGHT Tuner from your Deck to your hand, except \"Sage with Eyes of Blue\". You can discard this card, then target 1 Effect Monster you control; send it to the GY, and if you do, Special Summon 1 \"Blue-Eyes\" monster from your Deck. You can only use this effect of \"Sage with Eyes of Blue\" once per turn.", "STONE": "Once per turn, during the End Phase, if this card is in the GY because it was sent there this turn: You can Special Summon 1 \"Blue-Eyes\" monster from your Deck. You can banish this card from your GY, then target 1 \"Blue-Eyes\" monster in your GY; add it to your hand. You can only use this effect of \"The White Stone of Ancients\" once per turn.", "MEL": "Discard 1 card; add up to 2 Dragon monsters with 3000 or more ATK and 2500 or less DEF from your Deck to your hand.", "CON": "Discard 1 Dragon Tuner with 1000 or less ATK; draw 2 cards.", "MST": "Target 1 Spell/Trap on the field; destroy that target.", "RB": "Discard 1 card, then target 1 card on the field; destroy it.", "BURST": "If you control \"Blue-Eyes White Dragon\": Destroy all monsters your opponent controls. \"Blue-Eyes White Dragon\" you control cannot attack the turn you activate this card.", "AZ": "1 Tuner + 1+ non-Tuner Normal Monsters\nIf this card is Special Summoned: Until the end of the next turn, neither player can target Dragon monsters you currently control with card effects, also they cannot be destroyed by card effects. Once per turn, during your Standby Phase: You can target 1 Normal Monster in your GY; Special Summon it.", "SPI": "1 Tuner + 1 or more non-Tuner \"Blue-Eyes\" monsters\nNeither player can Special Summon 2 or more monsters at the same time. Once per turn, during either player's turn, when an effect of a card in the Graveyard is activated: You can negate the activation. During either player's turn: You can Tribute this Synchro Summoned card; Special Summon 1 LIGHT Dragon-Type Synchro Monster from your Extra Deck in Defense Position, except \"Blue-Eyes Spirit Dragon\", but destroy it during the End Phase of this turn."};
+const ROLE = {
+  BEWD:'Your main attacker at 3000 ATK, and the card most of the deck fetches. It’s a Normal Monster, which matters for Azure-Eyes Silver Dragon.',
+  ALT:'A second 3000-ATK body that doesn’t use your Normal Summon: reveal Blue-Eyes White Dragon in your hand to Special Summon it. On the field its name is Blue-Eyes White Dragon, so it turns on Burst Stream. Once per turn it destroys an opponent’s monster, but then it can’t attack that turn.',
+  DSW:'Always treated as a Blue-Eyes card. When it’s summoned it banishes 1 of your opponent’s Spells or Traps, and on either player’s turn it can swap itself for a Blue-Eyes White Dragon from your hand. Melody can’t search it, since it only has 2500 ATK.',
+  SAGE:'Your best starter. Normal Summon it to add White Stone to your hand. Its second effect discards it to turn an Effect Monster you control into a Blue-Eyes from your Deck. It’s a Level 1 Tuner, so Sage + a Level 8 Blue-Eyes makes a Level 9 Synchro.',
+  STONE:'The engine. Whenever it goes to the GY (discarded, Tributed, used as Synchro material, or sent by your Skill), it Special Summons a Blue-Eyes from your Deck in the End Phase. On a later turn it can banish itself to get a Blue-Eyes back from your GY.',
+  MEL:'Discard 1 card to add 2 Blue-Eyes (Blue-Eyes White Dragon or Alternative) to your hand. The best discard is White Stone, which then summons in the End Phase.',
+  CON:'Discard White Stone to draw 2. White Stone still summons a Blue-Eyes in the End Phase, so this card is pure profit.',
+  MST:'Destroys 1 Spell or Trap. It’s a Quick-Play Spell, so you can Set it and use it on your opponent’s turn.',
+  RB:'Discard 1 card to destroy any card on the field. Set it first; you can use it from your opponent’s next turn onward.',
+  BURST:'Comes from your Skill, not your Deck. If you control Blue-Eyes White Dragon (Alternative counts), it destroys all your opponent’s monsters, but your Blue-Eyes White Dragons can’t attack that turn.',
+  AZ:'Synchro: a Tuner + Blue-Eyes White Dragon (it needs a real Normal Monster). When it’s Special Summoned, your Dragons can’t be targeted or destroyed by card effects until the end of the next turn. In each of your Standby Phases it revives a Normal Monster from your GY.',
+  SPI:'Synchro: a Tuner + any Blue-Eyes. Once per turn it can negate an effect activated in the GY. Tribute it, even on your opponent’s turn, to summon Azure-Eyes in Defense Position; Azure protects itself, so it survives the End Phase.',
+  OM:'A stand-in for an opponent’s monster (2000 ATK), so you can practice removal and attacks.',
+  OD:'A stand-in for an opponent’s defensive monster (2500 DEF in Defense Position).',
+  OS:'A stand-in for an opponent’s face-down Spell or Trap.'
+};
+const SKILL_TEXT = 'You can only use this Skill’s first and second effects once per Duel. 1: Can be used before your normal draw. Set 1 “Burst Stream of Destruction” from outside your Deck. One of the cards from your normal draw this turn will be “Blue-Eyes White Dragon”. You can Normal Summon 1 “Blue-Eyes White Dragon” in addition to your Normal Summon/Set, and “Blue-Eyes White Dragon” can be Normal Summoned/Set without Tributing. 2: Reveal 1 LIGHT monster from your hand, then either place that card on the bottom of your Deck or send it to the Graveyard. Then, draw 2 cards.';
+</script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const C = BE.C;
+const IMG = id => 'https://images.ygoprodeck.com/images/cards/' + id + '.jpg';
+const IMG_S = id => 'https://images.ygoprodeck.com/images/cards_small/' + id + '.jpg';
+let MODE = 'learn';
+let SHOWN = null;            // state currently on the stage
+const els = new Map();
+let GEO = null;
+let dmode = 'a';
+
+/* ---------------- geometry + board ---------------- */
+function layout() {
+  const st = $('stage'); const W = Math.min(st.clientWidth || 360, 560);
+  const cw = W * 0.142, ch = cw * 86 / 59, gap = cw * 0.12, pad = 6;
+  const cx = [0.1, 0.3, 0.5, 0.7, 0.9].map(f => W * f);
+  const r0 = pad, r1 = r0 + ch + gap, r2 = r1 + ch + gap * 2.2, r3 = r2 + ch + gap, hy = r3 + ch + gap * 2.4;
+  const H = hy + ch + pad + 4;
+  GEO = {W, cw, ch, cx, r0, r1, r2, r3, hy, H, pad};
+  st.style.height = H + 'px';
+  st.innerHTML = '';
+  const b = document.createElement('div'); b.className = 'board'; b.style.height = (hy - gap * 1.2) + 'px'; st.appendChild(b);
+  const eye = document.createElement('div'); eye.className = 'eye'; eye.style.top = ((r1 + ch + r2) / 2) + 'px'; eye.style.width = (W * 0.5) + 'px'; eye.style.height = (gap * 2.2 + ch * 0.6) + 'px'; b.appendChild(eye);
+  const hb = document.createElement('div'); hb.className = 'handbar'; hb.style.top = (hy - gap * 0.6) + 'px'; hb.style.height = (ch + gap * 1.2) + 'px'; st.appendChild(hb);
+  const Z = (x, y, lab, cls, id) => { const z = document.createElement('div'); z.className = 'zone ' + (cls || ''); if (id) z.id = id;
+    z.style.cssText = `left:${x - cw / 2}px;top:${y}px;width:${cw}px;height:${ch}px`; z.innerHTML = '<div class="lab">' + lab + '</div>'; st.appendChild(z); };
+  for (let i = 0; i < 3; i++) { Z(cx[1 + i], r0, 'Spell/Trap', 'opp', 'z_osz' + i); Z(cx[1 + i], r1, 'Monster', 'opp', 'z_omz' + i); Z(cx[1 + i], r2, 'Monster', '', 'z_mz' + i); Z(cx[1 + i], r3, 'Spell/Trap', '', 'z_sz' + i); }
+  Z(cx[0], r0, 'Deck', 'opp pilez'); Z(cx[4], r0, 'Extra', 'opp pilez'); Z(cx[0], r1, 'GY', 'opp pilez', 'z_ogy'); Z(cx[4], r1, 'Field', 'opp pilez');
+  Z(cx[0], r2, 'Field', 'pilez'); Z(cx[4], r2, 'GY', 'pilez', 'z_gy'); Z(cx[0], r3, 'Extra', 'pilez', 'z_ex'); Z(cx[4], r3, 'Deck', 'pilez', 'z_deck');
+  ['gy', 'deck', 'ex', 'ogy'].forEach(k => { const p = document.createElement('div'); p.className = 'pcount'; p.id = 'pc_' + k; st.appendChild(p); });
+  const t = document.createElement('div'); t.className = 'toast'; t.id = 'toast'; t.style.top = ((r1 + ch + r2) / 2) + 'px'; st.appendChild(t);
+  els.clear();
+  if (SHOWN) render(SHOWN, true);
+}
+function slot(s, u) {
+  const g = GEO, z = BE.zoneOf(s, u);
+  if (!z) return null;
+  const a = s.z[z], i = a.indexOf(u);
+  switch (z) {
+    case 'mz': return {x: g.cx[1 + i], y: g.r2};
+    case 'sz': return {x: g.cx[1 + i], y: g.r3};
+    case 'omz': return {x: g.cx[1 + i], y: g.r1};
+    case 'osz': return {x: g.cx[1 + i], y: g.r0};
+    case 'gy': return {x: g.cx[4], y: g.r2, pile: i};
+    case 'ogy': return {x: g.cx[0], y: g.r1, pile: i};
+    case 'deck': return {x: g.cx[4], y: g.r3, pile: a.length - i, hide: i > 2};
+    case 'ex': return {x: g.cx[0], y: g.r3, pile: i};
+    case 'ban': return {x: g.cx[4], y: g.r2, gone: 1};
+    case 'hand': {
+      const n = a.length, avail = g.W - 2 * g.pad - 8, step = n > 1 ? Math.min(g.cw + 5, (avail - g.cw) / (n - 1)) : 0;
+      const total = g.cw + step * (n - 1); const x0 = (g.W - total) / 2 + g.cw / 2;
+      return {x: x0 + step * i, y: g.hy, hand: i};
+    }
+  }
+  return null;
+}
+function cardEl(s, u) {
+  let e = els.get(u);
+  const d = s.cards[u], info = C[d.c];
+  if (e && e.dataset.c === d.c) return e;
+  if (e) e.remove();
+  e = document.createElement('div'); e.className = 'card'; e.dataset.u = u; e.dataset.c = d.c;
+  e.style.width = GEO.cw + 'px'; e.style.height = GEO.ch + 'px';
+  if (info.t === 'om') { e.classList.add('dummy'); e.innerHTML = 'Opponent’s<br>monster<br><br>' + info.atk + ' / ' + info.def + '<div class="back"></div>'; }
+  else if (info.t === 'os') { e.classList.add('osback'); e.innerHTML = '<div class="back"></div>'; }
+  else {
+    e.innerHTML = '<div class="fb">' + info.n + '</div><img alt="" loading="lazy"><div class="back"></div><div class="atk"></div>';
+    const img = e.querySelector('img'); img.onerror = () => { img.style.display = 'none'; }; img.src = IMG_S(info.id);
+  }
+  e.style.transform = 'translate(' + (GEO.W / 2) + 'px,' + GEO.hy + 'px)';
+  $('stage').appendChild(e); els.set(u, e);
+  attachGestures(e);
+  return e;
+}
+function render(s, instant) {
+  if (!GEO) layout();
+  SHOWN = s;
+  const seen = new Set();
+  for (const u in s.cards) {
+    const p = slot(s, u); if (!p) continue;
+    seen.add(u);
+    const e = cardEl(s, u), d = s.cards[u];
+    if (instant) e.style.transition = 'none';
+    const def = (BE.zoneOf(s, u) === 'mz' || BE.zoneOf(s, u) === 'omz') && d.p === 'd';
+    const pileOff = p.pile != null ? -Math.min(p.pile, 6) * 0.6 : 0;
+    e.style.transform = `translate(${p.x - GEO.cw / 2 + pileOff}px,${p.y + pileOff}px) rotate(${def ? 90 : 0}deg)`;
+    e.style.opacity = p.gone || p.hide ? '0' : '1';
+    e.style.pointerEvents = p.gone || p.hide ? 'none' : '';
+    const z = BE.zoneOf(s, u);
+    e.style.zIndex = z === 'hand' ? 200 + p.hand : (p.pile != null ? 10 + p.pile : 60);
+    const down = d.f === 'd';
+    e.classList.toggle('down', down);
+    e.classList.toggle('mine', u[0] === 'c');
+    e.classList.toggle('st', z === 'sz');
+    const a = e.querySelector('.atk');
+    if (a) a.textContent = (z === 'mz' && !down && (C[d.c].t === 'm' || C[d.c].t === 'x')) ? (d.p === 'd' ? 'DEF ' + C[d.c].def : C[d.c].atk + ' ATK') + (BE.prot(s, u) ? ' 🛡' : '') : '';
+    if (instant) { void e.offsetWidth; e.style.transition = ''; }
+  }
+  for (const [u, e] of els) if (!seen.has(u)) { e.remove(); els.delete(u); }
+  const cnt = (k, z, x, y) => { const p = $('pc_' + k); if (!p) return; const n = s.z[z].length; p.textContent = n; p.style.display = n ? '' : 'none'; p.style.left = (x + GEO.cw / 2 - 18) + 'px'; p.style.top = (y + GEO.ch - 14) + 'px'; };
+  cnt('gy', 'gy', GEO.cx[4], GEO.r2); cnt('deck', 'deck', GEO.cx[4], GEO.r3); cnt('ex', 'ex', GEO.cx[0], GEO.r3); cnt('ogy', 'ogy', GEO.cx[0], GEO.r1);
+  $('lpM').textContent = s.lp.me; $('lpO').textContent = s.lp.opp;
+}
+function glow(uids) { els.forEach(e => e.classList.remove('act')); (uids || []).forEach(u => { const e = els.get(u); if (e) e.classList.add('act'); }); }
+let toastT = 0;
+function toast(msg, bad) { const t = $('toast'); if (!t) return; t.textContent = msg; t.className = 'toast on' + (bad ? ' bad' : ''); clearTimeout(toastT); toastT = setTimeout(() => t.className = 'toast', bad ? 3600 : 2600); }
+function banner(text) { const b = document.createElement('div'); b.className = 'banner'; b.textContent = text; b.style.top = ((GEO.r1 + GEO.ch + GEO.r2) / 2 - 14) + 'px'; b.style.fontSize = Math.max(22, GEO.W * 0.08) + 'px'; $('stage').appendChild(b); setTimeout(() => b.remove(), 2300); }
+
+/* ---------------- modal, card details, sheets ---------------- */
+function openModal(html) { $('mwrap').innerHTML = html; $('modal').classList.add('on'); }
+function closeModal() { $('modal').classList.remove('on'); $('mwrap').innerHTML = ''; }
+let modalLocked = false;
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal' && !modalLocked) closeModal(); });
+function typeLine(c) {
+  const i = C[c];
+  if (i.t === 'm' || i.t === 'x') return 'Level ' + i.lv + ' · LIGHT · ' + i.race + ' · ' + i.sub + ' · ' + i.atk + ' ATK / ' + i.def + ' DEF';
+  return i.sub || '';
+}
+function openCard(c, acts, uid) {
+  const i = C[c];
+  const img = i.id ? '<img id="mImg" src="' + IMG(i.id) + '" alt="' + i.n + '">' : '<div class="card dummy" style="position:relative;width:100%;aspect-ratio:59/86;font-size:14px">' + i.n + '</div>';
+  let ah = '';
+  if (acts && acts.length) ah = '<div class="acts"><div class="h">What it can do right now:</div>' + acts.map((m, k) => '<button data-k="' + k + '">' + esc(m.t) + '</button>').join('') + '</div>';
+  else if (acts) ah = '<div class="acts"><div class="h">' + esc(idleReason(c, uid)) + '</div></div>';
+  openModal('<div class="mbox">' + img + '<div class="mtext"><div class="mscroll"><h3>' + i.n + '</h3><div class="tl">' + typeLine(c) + '</div>' + ah +
+    '<div class="role">' + (ROLE[c] || '') + '</div><div class="desc">' + esc(TEXTS[c] || '') + '</div></div><button id="mClose">Close</button></div></div>');
+  $('mClose').onclick = closeModal;
+  const mi = $('mImg'); if (mi) mi.onclick = () => { const b = document.createElement('div'); b.className = 'bigcard'; b.innerHTML = '<img src="' + IMG(i.id) + '"><p>Tap to close</p>'; b.onclick = () => b.remove(); document.body.appendChild(b); };
+  if (acts) document.querySelectorAll('.mbox .acts button').forEach(b => b.onclick = () => { const m = acts[+b.dataset.k]; closeModal(); playMove(m); });
+}
+function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+/* items: [{label, w, fn, cls}] */
+function sheet(title, sub, items, opt) {
+  opt = opt || {};
+  modalLocked = !!opt.lock;
+  let h = '<div class="sheet"><h3>' + esc(title) + '</h3>' + (sub ? '<p class="sub">' + sub + '</p>' : '');
+  items.forEach((it, k) => { h += it.html ? it.html : '<button data-k="' + k + '" class="' + (it.cls || '') + '">' + esc(it.label) + (it.w ? '<span class="w">' + esc(it.w) + '</span>' : '') + '</button>'; });
+  if (!opt.lock) h += '<button class="cancel" id="shX">' + (opt.close || 'Cancel') + '</button>';
+  openModal(h + '</div>');
+  document.querySelectorAll('.sheet button[data-k]').forEach(b => b.onclick = () => { const it = items[+b.dataset.k]; modalLocked = false; if (!it.keep) closeModal(); it.fn && it.fn(); });
+  if ($('shX')) $('shX').onclick = () => { modalLocked = false; closeModal(); };
+}
+
+/* ---------------- gestures ---------------- */
+let gest = null, lastTap = {u: null, t: 0}, tapTimer = 0;
+function attachGestures(e) {
+  e.addEventListener('pointerdown', ev => {
+    if (ev.button > 0) return;
+    const u = e.dataset.u;
+    gest = {u, e, x: ev.clientX, y: ev.clientY, drag: false, held: false, id: ev.pointerId};
+    if (MODE === 'play') gest.hold = setTimeout(() => { if (gest && !gest.drag) { gest.held = true; holdCard(u); } }, 500);
+  });
+}
+document.addEventListener('pointermove', ev => {
+  if (!gest || gest.held) return;
+  const dx = ev.clientX - gest.x, dy = ev.clientY - gest.y;
+  if (!gest.drag && Math.hypot(dx, dy) > 10) {
+    clearTimeout(gest.hold);
+    const z = BE.zoneOf(SHOWN, gest.u);
+    if (MODE !== 'play' || (z !== 'hand' && z !== 'mz')) { gest = null; return; }
+    gest.drag = true; gest.base = gest.e.style.transform; gest.e.classList.add('drag');
+  }
+  if (gest.drag) {
+    gest.e.style.transform = gest.base.replace(/translate\(([-\d.]+)px,([-\d.]+)px\)/, (m, a, b) => 'translate(' + (+a + dx) + 'px,' + (+b + dy) + 'px)');
+    hot(hitZone(ev.clientX, ev.clientY));
+  }
+}, {passive: true});
+document.addEventListener('pointerup', ev => {
+  if (!gest) return;
+  const g = gest; gest = null; clearTimeout(g.hold);
+  if (g.held) return;
+  if (g.drag) { g.e.classList.remove('drag'); hot(null); const h = hitZone(ev.clientX, ev.clientY); render(SHOWN); dropCard(g.u, h); return; }
+  tapCard(g.u);
+});
+document.addEventListener('pointercancel', () => { if (gest) { clearTimeout(gest.hold); if (gest.drag) { gest.e.classList.remove('drag'); render(SHOWN); } gest = null; hot(null); } });
+function hot(h) { document.querySelectorAll('.zone.hot').forEach(z => z.classList.remove('hot')); if (h && h.el) h.el.classList.add('hot'); }
+function hitZone(cx, cy) {
+  const r = $('stage').getBoundingClientRect(), x = cx - r.left, y = cy - r.top, g = GEO;
+  const col = [0, 1, 2, 3, 4].find(i => Math.abs(x - g.cx[i]) < g.cw * 0.62);
+  const row = [g.r0, g.r1, g.r2, g.r3].findIndex(ry => y > ry - g.ch * 0.15 && y < ry + g.ch * 1.15);
+  if (y > g.hy - 10) return {t: 'hand'};
+  if (col == null || row < 0) return null;
+  if (col >= 1 && col <= 3) {
+    const i = col - 1; const t = ['osz', 'omz', 'mz', 'sz'][row];
+    return {t, i, el: $('z_' + t + i), u: SHOWN.z[t][i]};
+  }
+  if (row === 2 && col === 4) return {t: 'gy', el: $('z_gy')};
+  if (row === 1 && col === 0) return {t: 'ogy'};
+  return null;
+}
+function tapCard(u) {
+  const s = SHOWN; const z = BE.zoneOf(s, u); const d = s.cards[u];
+  if (z === 'deck') { toast('Your Deck: ' + s.z.deck.length + ' cards left.'); return; }
+  if (z === 'gy' || z === 'ogy' || z === 'ex') { openPile(z); return; }
+  if (MODE === 'play' && z === 'mz') {
+    const now = Date.now();
+    if (lastTap.u === u && now - lastTap.t < 320) { clearTimeout(tapTimer); lastTap = {u: null, t: 0}; dblTap(u); return; }
+    lastTap = {u, t: now};
+    clearTimeout(tapTimer); tapTimer = setTimeout(() => showCardOf(u), 300);
+    return;
+  }
+  showCardOf(u);
+}
+function showCardOf(u) {
+  const s = SHOWN, d = s.cards[u]; const z = BE.zoneOf(s, u);
+  if (u[0] === 'o' && d.f === 'd') { openCard('OS', MODE === 'play' ? actsFor(u) : null, u); return; }
+  openCard(d.c, MODE === 'play' && (z === 'hand' || z === 'mz' || z === 'sz' || u[0] === 'o') ? actsFor(u) : null, u);
+}
+function holdCard(u) { const s = SHOWN; const z = BE.zoneOf(s, u); if (z === 'gy' || z === 'ex' || z === 'ogy') { openPile(z); return; } showCardOf(u); }
+function dblTap(u) {
+  const s = P.s; const d = s.cards[u];
+  const m = BE.moves(s, true).find(m => (m.k === 'pos' || m.k === 'flip') && m.src === u);
+  if (m) { playMove(m); return; }
+  if (s.active !== 'me' || s.phase !== 'main') toast('You can only change positions in your Main Phase.', 1);
+  else if (d.su === s.turn) toast('A monster can’t change its battle position the turn it was summoned.', 1);
+  else if (d.pc === s.turn) toast('Each monster can change position only once per turn.', 1);
+  else toast('That monster can’t change position right now.', 1);
+}
+
+/* moves that belong to a card */
+function actsFor(u) {
+  const s = P.s; const z = BE.zoneOf(s, u); const c = s.cards[u].c;
+  return BE.moves(s, true).filter(m => {
+    if (m.k === 'end' || m.k === 'bp' || m.k === 'oend' || m.k === 'draw') return false;
+    if (m.src === u) return true;
+    if (z === 'hand' && m.src && s.cards[m.src] && BE.zoneOf(s, m.src) === 'hand' && s.cards[m.src].c === c) return true;
+    if (m.k === 'syn' && m.m.includes(u)) return true;
+    if (m.k === 'ns' && m.tr && m.tr.includes(u)) return true;
+    if (u[0] === 'o' && m.tg === u) return true;
+    if (z === 'ex' && m.k === 'syn' && m.c === c) return true;
+    if (z === 'gy' && m.k === 'st2' && m.tg === u) return true;
+    return false;
+  });
+}
+function idleReason(c, u) {
+  const s = P.s;
+  if (s.win) return 'The Duel is over. Tap New duel to play again.';
+  if (s.pend.length) return 'Answer the effect prompt first.';
+  if (s.active !== 'me') return 'It’s your opponent’s turn. Only Set Traps, Set Quick-Play Spells and Quick Effects can be used now.';
+  if (s.phase === 'draw') return 'Draw your card first (and decide on your Skill).';
+  return 'Nothing this card can legally do right now. ' + (whyNot(c, u) || '');
+}
+function whyNot(c, u) {
+  const s = P.s, T = s.turn, z = u ? BE.zoneOf(s, u) : 'hand';
+  const free = k => s.z[k].includes(null);
+  const handHas = x => s.z.hand.some(h => s.cards[h].c === x);
+  if (s.active !== 'me') return 'It’s your opponent’s turn.';
+  if (s.phase === 'draw') return 'Draw your card first.';
+  if (s.phase === 'battle' && z === 'hand') return 'There’s no Main Phase 2 in Speed Duels, so you can’t summon or activate cards from your hand after battling.';
+  if (z === 'hand') {
+    if (c === 'ALT') return s.f.alt === T ? 'You can only Special Summon Alternative this way once per turn.' : !handHas('BEWD') ? 'Alternative can’t be Normal Summoned. You Special Summon it by revealing Blue-Eyes White Dragon from your hand, and you don’t have one.' : !free('mz') ? 'All 3 of your Monster Zones are full.' : '';
+    if (C[c].t === 'm') {
+      const extra = c === 'BEWD' && s.f.sk1 === T && s.f.xns !== T;
+      if (s.f.ns === T && !extra) return 'You’ve already used your Normal Summon this turn.';
+      const need = BE.tribNeed(s, c), have = s.z.mz.filter(Boolean).length;
+      if (need > have) return 'Level ' + C[c].lv + ' monsters need ' + need + ' Tribute' + (need > 1 ? 's' : '') + ', and you control ' + have + ' monster' + (have === 1 ? '' : 's') + '.' + (c === 'BEWD' && !s.sk.s1 ? ' Your Skill’s first effect lets Blue-Eyes skip Tributes.' : '');
+      if (need === 0 && !free('mz')) return 'All 3 of your Monster Zones are full (Speed Duels have only 3).';
+    }
+    if (c === 'MEL') return !free('sz') ? 'Your Spell & Trap Zones are full.' : s.z.hand.length < 2 ? 'Melody needs another card in your hand to discard.' : !s.z.deck.some(d => ['BEWD', 'ALT'].includes(s.cards[d].c)) ? 'No Blue-Eyes White Dragon or Alternative left in your Deck.' : '';
+    if (c === 'CON') return !handHas('STONE') ? 'Cards of Consonance needs you to discard a Dragon Tuner with 1000 or less ATK: The White Stone of Ancients. Sage is a Spellcaster, so it doesn’t count.' : !free('sz') ? 'Your Spell & Trap Zones are full.' : '';
+    if (c === 'MST') return !s.z.osz.some(Boolean) ? 'There’s no Spell or Trap to target. You can still Set it for later.' : '';
+    if (c === 'RB') return 'Traps can’t be activated from your hand. Set it first, then use it from your opponent’s next turn.';
+  }
+  if (z === 'sz') {
+    const d = s.cards[u];
+    if ((c === 'RB' || c === 'MST') && d.st >= T) return 'A Set Trap or Quick-Play Spell can’t be activated the turn it was Set.';
+    if (c === 'RB' && !s.z.hand.length) return 'Raigeki Break needs you to discard a card.';
+    if (c === 'BURST') return !s.z.omz.some(Boolean) ? 'Your opponent has no monsters to destroy.' : 'You need to control Blue-Eyes White Dragon (or Alternative) face-up.';
+  }
+  if (z === 'mz') {
+    if (s.phase === 'battle') { const d = s.cards[u]; return d.p === 'd' ? 'Defense Position monsters can’t attack.' : d.at === T ? 'It already attacked this turn.' : d.na === T ? 'Alternative can’t attack the turn it used its effect.' : (s.f.burst === T && (c === 'BEWD' || c === 'ALT')) ? 'Blue-Eyes White Dragon can’t attack the turn you activated Burst Stream.' : ''; }
+    if (s.first && T === 1 && s.phase === 'main') return 'The player going first can’t attack on turn 1.';
+  }
+  return '';
+}
+function dropCard(u, h) {
+  const s = P.s; if (!h) return;
+  const z = BE.zoneOf(s, u), c = s.cards[u].c, info = C[c];
+  if (s.pend.length) { showPending(); return; }
+  if (z === 'hand') {
+    if (h.t === 'hand') return;
+    if (h.t === 'gy') { toast('Cards only go to the GY through costs and effects. Hold a card to see what it can do.', 1); return; }
+    if (h.t === 'omz' || h.t === 'osz') { toast('Drop your cards on your own side of the field.', 1); return; }
+    const ms = actsFor(u);
+    if (h.t === 'mz') {
+      if (info.t !== 'm') { toast('Spells and Traps go in your Spell & Trap Zones, the row below your monsters.', 1); return; }
+      let c1 = ms.filter(m => m.k === 'ns' || m.k === 'alt');
+      const want = c1.filter(m => dmode === 'a' ? (m.k === 'ns' ? !m.set : m.p === 'a') : (m.k === 'ns' ? m.set : m.p === 'd'));
+      if (want.length) c1 = want;
+      return choose(c1, 'Summon ' + info.n, whyNot(c, u) || 'You can’t summon that right now.');
+    }
+    if (h.t === 'sz') {
+      if (info.t === 'm') { toast('Monsters go in your Monster Zones, the row above.', 1); return; }
+      let c1 = ms.filter(m => ['mel', 'con', 'mst', 'set'].includes(m.k));
+      if (dmode === 'd' || info.t === 't') { const st = c1.filter(m => m.k === 'set'); if (st.length) c1 = st; }
+      else { const act = c1.filter(m => m.k !== 'set'); if (act.length) c1 = act; }
+      return choose(c1, info.n, whyNot(c, u) || 'You can’t play that right now.');
+    }
+  }
+  if (z === 'mz') {
+    if (h.t === 'omz' || h.t === 'osz') {
+      const ms = BE.moves(s, true).filter(m => m.k === 'atk' && m.src === u && (h.u && h.t === 'omz' ? m.tg === h.u : true));
+      if (!ms.length) { toast(s.phase !== 'battle' ? 'Attacks happen in the Battle Phase. Tap Battle ▶ first.' : (whyNot(c, u) || 'That monster can’t attack right now.'), 1); return; }
+      return choose(ms, 'Attack', '');
+    }
+  }
+}
+function choose(ms, title, failMsg) {
+  if (!ms.length) { toast(failMsg, 1); return; }
+  if (ms.length === 1) { playMove(ms[0]); return; }
+  sheet(title, 'Pick one:', ms.map(m => ({label: m.t, fn: () => playMove(m)})));
+}
+
+/* ---------------- Play tab ---------------- */
+const P = {s: null, hist: [], first: true};
+function newPlay(first, opp) {
+  P.first = first; P.hist = [];
+  P.s = BE.newDuel({first, opp: opp || []});
+  render(P.s, true); afterPlay(true);
+}
+function playMove(m) {
+  const s = P.s;
+  const real = (m.sets ? null : BE.find(s, m)) || m;
+  P.hist.push(s); if (P.hist.length > 300) P.hist.shift();
+  const before = s;
+  P.s = BE.apply(s, real);
+  render(P.s);
+  const drew = newCards(before, P.s, real);
+  const msgs = P.s.log.slice(); if (drew.length) msgs.push('You drew ' + drew.join(' and ') + '.');
+  if (msgs.length) toast(msgs.join(' '));
+  afterPlay();
+}
+function newCards(a, b, m) { if (!BE.drawsCards(m)) return []; return b.z.hand.filter(u => !a.z.hand.includes(u) && a.z.deck.includes(u)).map(u => C[b.cards[u].c].n); }
+function afterPlay(fresh) {
+  const s = P.s;
+  $('pUndo').disabled = !P.hist.length;
+  $('pBan').textContent = 'Banished (' + s.z.ban.length + ')';
+  const ph = {draw: 'Draw Phase', standby: 'Standby Phase', main: 'Main Phase', battle: 'Battle Phase', end: 'End Phase', opp: 'Opponent’s turn'}[s.phase];
+  const T = s.turn;
+  const ns = s.f.ns === T ? 'Normal Summon used' : 'Normal Summon available';
+  const extra = s.f.sk1 === T ? (s.f.xns === T ? ' · extra Blue-Eyes summon used' : ' · extra Blue-Eyes summon available') : '';
+  const sk = 'Skill: 1st ' + (s.sk.s1 ? 'used' : 'ready') + ', 2nd ' + (s.sk.s2 ? 'used' : 'ready');
+  $('pstat').textContent = 'Turn ' + T + ' · ' + ph + (s.active === 'me' ? ' · ' + ns + extra : '') + ' · ' + sk;
+  const pp = $('pPhase'), pe = $('pEnd');
+  pe.style.display = s.active === 'me' && (s.phase === 'main' || s.phase === 'battle') ? '' : 'none';
+  if (s.win) { pp.style.display = 'none'; pe.style.display = 'none'; }
+  else if (s.active !== 'me') { pp.style.display = ''; pp.textContent = 'End opponent’s turn ▶'; }
+  else if (s.phase === 'draw') { pp.style.display = ''; pp.textContent = 'Draw ▶'; }
+  else if (s.phase === 'main' && !(s.first && T === 1)) { pp.style.display = ''; pp.textContent = 'Battle ▶'; }
+  else pp.style.display = 'none';
+  setCap(s);
+  glow([]);
+  if (s.win) { banner(s.win === 'me' ? 'You win!' : 'You lose'); return; }
+  if (s.pend.length) { setTimeout(showPending, 350); return; }
+  if (s.active === 'me' && s.phase === 'draw' && !s.sk.s1 && BE.moves(s, true).some(m => m.k === 'sk1')) setTimeout(drawPrompt, 350);
+}
+function setCap(s) {
+  const T = s.turn;
+  let k = 'Your turn ' + Math.ceil(T / 2), p = '';
+  if (s.active !== 'me') { k = 'Opponent’s turn'; p = 'There’s no AI opponent. This is when you’d use a Set Raigeki Break or Mystical Space Typhoon, or a Quick Effect, in response to what they do. Add stand-in cards with Opponent’s cards, then end their turn.'; }
+  else if (s.phase === 'draw') { p = 'Draw Phase. Your Skill’s first effect can only be used now, before you draw.'; }
+  else if (s.phase === 'main') { p = s.first && T === 1 ? 'Main Phase of turn 1. The player going first doesn’t draw and can’t attack.' : 'Main Phase. Make every play you want before Battle ▶, because Speed Duels have no Main Phase 2.'; }
+  else if (s.phase === 'battle') { p = 'Battle Phase. Drag a monster onto an opponent’s monster to attack it, or onto their side to attack directly.'; }
+  $('stepk').textContent = k; $('cap').textContent = p; $('capw').textContent = '';
+}
+function showPending() {
+  const s = P.s; if (!s.pend.length || MODE !== 'play') return;
+  const ms = BE.moves(s, true);
+  const p = s.pend[0];
+  const title = {sage: 'Sage with Eyes of Blue', dsw: 'Dragon Spirit of White', stone: 'The White Stone of Ancients', azure: 'Azure-Eyes Silver Dragon'}[p.k];
+  const sub = {sage: 'Its Normal Summon effect can search your Deck.', dsw: 'It was summoned, so it can banish an opponent’s Spell or Trap.', stone: 'It went to the GY this turn, so its End Phase effect can summon a Blue-Eyes from your Deck.', azure: 'Standby Phase: it can revive a Normal Monster from your GY.'}[p.k];
+  glow([p.u]);
+  sheet(title, sub, ms.map(m => ({label: m.t, fn: () => playMove(m)})).concat(P.hist.length ? [{label: '↶ Undo the last play', cls: 'cancel', fn: () => $('pUndo').onclick()}] : []), {lock: true});
+}
+function drawPrompt() {
+  const s = P.s; if (MODE !== 'play' || s.phase !== 'draw' || s.pend.length) return;
+  const ms = BE.moves(s, true);
+  sheet('Draw Phase', 'Use your Skill’s first effect before drawing? It works once per Duel.', [
+    {label: 'Use the Skill', w: 'Set Burst Stream of Destruction, draw Blue-Eyes White Dragon, and Normal Summon Blue-Eyes without Tributes this turn (plus 1 extra Blue-Eyes Normal Summon).', fn: () => playMove(ms.find(m => m.k === 'sk1'))},
+    {label: 'Just draw', w: 'Save the Skill for a later turn.', fn: () => playMove(ms.find(m => m.k === 'draw'))}
+  ], {close: 'Decide later'});
+}
+$('pPhase').onclick = () => {
+  const s = P.s; if (s.pend.length) { showPending(); return; }
+  if (s.active !== 'me') { playMove({k: 'oend', t: 'Opponent ends their turn'}); return; }
+  if (s.phase === 'draw') { const ms = BE.moves(s, true); if (ms.some(m => m.k === 'sk1')) drawPrompt(); else playMove(ms.find(m => m.k === 'draw')); return; }
+  if (s.phase === 'main') { const m = BE.moves(s, true).find(m => m.k === 'bp'); if (m) playMove(m); }
+};
+$('pEnd').onclick = () => { const s = P.s; if (s.pend.length) { showPending(); return; } const m = BE.moves(s, true).find(m => m.k === 'end'); if (m) playMove(m); };
+$('pUndo').onclick = () => { if (!P.hist.length) return; closeModal(); P.s = P.hist.pop(); render(P.s); afterPlay(); };
+$('pBan').onclick = () => openPile('ban');
+$('pNew').onclick = () => sheet('New duel', 'Speed Duel: 4000 LP, 4-card opening hand.', [
+  {label: 'Go first', w: 'No draw and no attacks on turn 1. Build the strongest board you can.', fn: () => newPlay(true)},
+  {label: 'Go second', w: 'Your opponent starts with a 2000-ATK monster and a Set card. You draw and can use your Skill’s first effect right away.', fn: () => newPlay(false, ['OM', 'OS'])},
+  {label: 'Go second, empty board', w: 'Practice direct attacks and the Skill turn with nothing in your way.', fn: () => newPlay(false, [])}
+]);
+$('pOpp').onclick = () => {
+  const go = c => { const t = BE.addOpp(P.s, c); if (!t) { toast('Those opponent zones are full.', 1); return; } P.hist.push(P.s); P.s = t; render(P.s); afterPlay(); };
+  sheet('Opponent’s cards', 'Stand-ins so you can practice removal and attacks. There’s no AI.', [
+    {label: 'Add a monster (2000 ATK)', fn: () => go('OM')},
+    {label: 'Add a wall (2500 DEF, Defense Position)', fn: () => go('OD')},
+    {label: 'Add a Set Spell/Trap', fn: () => go('OS')},
+    {label: 'Clear their field', fn: () => { P.hist.push(P.s); P.s = BE.clearOpp(P.s); render(P.s); afterPlay(); }}
+  ], {close: 'Done'});
+};
+$('pSkill').onclick = () => {
+  const s = P.s; const ms = BE.moves(s, true).filter(m => m.k === 'sk1' || m.k === 'sk2');
+  let sub = '<b>Destiny Draw: Blue-Eyed Dragons.</b> 1st effect: ' + (s.sk.s1 ? 'used.' : 'ready, usable only in your Draw Phase before you draw.') + ' 2nd effect: ' + (s.sk.s2 ? 'used.' : 'ready, usable in your Main Phase.');
+  sheet('Your Skill', sub, ms.map(m => ({label: m.t, w: BE.why(s, m), fn: () => playMove(m)})).concat([{label: 'Read the full Skill text', keep: 1, fn: () => sheet('Destiny Draw: Blue-Eyed Dragons', SKILL_TEXT, [], {close: 'Close'})}]), {close: 'Close'});
+};
+$('pWhat').onclick = () => {
+  const s = P.s;
+  if (s.win) { toast('The Duel is over.'); return; }
+  if (s.active !== 'me') { oppAdvice(); return; }
+  thinking(() => {
+    const r = ranked(s).slice(0, 3);
+    sheet('What now?', 'Your strongest options from here, best first:', r.map((x, i) => ({label: x.m.t, w: BE.why(s, x.m), cls: i ? '' : 'best', fn: () => playMove(x.m)})), {close: 'Close'});
+  });
+};
+function oppAdvice() {
+  const s = P.s; const ms = BE.moves(s, true).filter(m => m.k !== 'oend');
+  sheet('During your opponent’s turn', ms.length ? 'Save these for when your opponent commits to a play, for example right after they summon their best monster:' : 'Nothing to do yet. Set a Raigeki Break or Mystical Space Typhoon on your turn to have answers here.', ms.map(m => ({label: m.t, w: BE.why(s, m), fn: () => playMove(m)})), {close: 'Close'});
+}
+$('pBest').onclick = () => {
+  const s = P.s;
+  if (s.win) { toast('The Duel is over.'); return; }
+  if (s.active !== 'me') { oppAdvice(); return; }
+  thinking(() => { const r = BE.solve(s); showLine(s, r.line); });
+};
+function showLine(s, line) {
+  if (!line.length) { sheet('Best play', 'Nothing useful left to do.', [], {close: 'Close'}); return; }
+  const di = line.findIndex(m => BE.drawsCards(m));
+  let h = '<ol>' + line.map((m, i) => '<li>' + esc(m.t) + '<span class="w">' + esc(BE.why(s, m)) + '</span></li>').join('') + '</ol>';
+  if (di >= 0 && di < line.length - 1) h += '<p class="note">Step ' + (di + 1) + ' draws cards. After you see them, tap Best play again, since they may give you a better line.</p>';
+  sheet('Best play', '', [{html: h}, {label: 'Do the next step', keep: 0, fn: () => { playMove(line[0]); }}, {label: di >= 0 ? 'Do every step up to the draw' : 'Do every step', fn: () => runSteps(line, di)}], {close: 'Close'});
+}
+function runSteps(line, di) {
+  const n = di >= 0 ? di + 1 : line.length; let i = 0;
+  const step = () => { if (i >= n || P.s.pend.length && line[i].k.indexOf('p_') !== 0) { closeModal(); afterPlay(); return; }
+    const m = BE.find(P.s, line[i]); if (!m) { closeModal(); afterPlay(); return; }
+    P.hist.push(P.s); P.s = BE.apply(P.s, m); render(P.s); i++; setTimeout(step, 650); };
+  closeModal(); step();
+}
+function ranked(s) {
+  const out = [], seen = new Set();
+  BE.moves(s, false).forEach(m => {
+    const t = BE.apply(s, m, {hidden: true}); const k = BE.key(t); if (seen.has(k)) return; seen.add(k);
+    const v = (t.win || t.active !== 'me') ? BE.evaluate(t) : BE.solve(t, {limit: 20000}).v;
+    if (m.sets && m.sets.length) m = Object.assign({}, m, {t: 'Set ' + m.sets.map(x => C[x.c].n).join(' and ') + ', then ' + m.t.charAt(0).toLowerCase() + m.t.slice(1), pre: m.sets});
+    out.push({m, v});
+  });
+  return out.sort((a, b) => b.v - a.v);
+}
+function thinking(fn) { sheet('Thinking…', 'Working out the strongest line.', [], {lock: true}); setTimeout(() => { modalLocked = false; fn(); }, 40); }
+function openPile(z) {
+  const s = SHOWN; const list = s.z[z].slice().reverse();
+  const title = {gy: 'Your GY', ogy: 'Opponent’s GY', ex: 'Your Extra Deck', ban: 'Banished'}[z];
+  let h = '<div class="pview"><div class="pg">' + (list.length ? list.map(u => { const c = s.cards[u].c; return '<button class="pc" data-u="' + u + '" aria-label="' + C[c].n + '">' + (C[c].id ? '<img src="' + IMG_S(C[c].id) + '" alt="">' : C[c].n) + '</button>'; }).join('') : '<p class="note">Empty.</p>') + '</div></div>';
+  let extra = [];
+  if (MODE === 'play' && z === 'ex') extra = BE.moves(P.s, true).filter(m => m.k === 'syn').map(m => ({label: m.t, fn: () => playMove(m)}));
+  if (MODE === 'play' && z === 'gy') extra = BE.moves(P.s, true).filter(m => m.k === 'st2').map(m => ({label: m.t, fn: () => playMove(m)}));
+  sheet(title + ' (' + list.length + ')', z === 'ex' && MODE === 'play' && !extra.length ? 'To Synchro Summon, control a face-up Level 1 Tuner (Sage or White Stone) and a Level 8 Blue-Eyes. Azure-Eyes needs the real Blue-Eyes White Dragon.' : '', [{html: h}].concat(extra), {close: 'Close'});
+  document.querySelectorAll('.pview .pc').forEach(b => b.onclick = () => { const u = b.dataset.u; const c = s.cards[u].c; closeModal(); openCard(c, MODE === 'play' ? actsFor(u) : null, u); });
+}
+document.querySelectorAll('#dmode button').forEach(b => b.onclick = () => { dmode = b.dataset.m; document.querySelectorAll('#dmode button').forEach(x => x.classList.toggle('on', x === b)); });
+
+/* opponent's turn for Watch / Practice: no AI, so drop in a monster and a Set card as stand-ins */
+function oppTurn(s) {
+  let t = BE.apply(s, {k: 'oend', t: ''});
+  ['OM', 'OS'].forEach(c => { const x = BE.addOpp(t, c); if (x) t = x; });
+  return t;
+}
+/* ---------------- Watch tab ---------------- */
+const SAMPLES = [
+  {name: 'Sage + Melody (going first)', hand: ['SAGE', 'MEL', 'BEWD', 'RB'], first: true},
+  {name: 'Double White Stone (going first)', hand: ['SAGE', 'STONE', 'CON', 'MST'], first: true},
+  {name: 'No Sage: White Stone + Melody (going first)', hand: ['STONE', 'MEL', 'RB', 'CON'], first: true},
+  {name: 'Two Sages (going first)', hand: ['SAGE', 'SAGE', 'BEWD', 'RB'], first: true},
+  {name: 'Weak hand: two Blue-Eyes (going first)', hand: ['BEWD', 'BEWD', 'RB', 'MST'], first: true},
+  {name: 'Skill turn (going second)', hand: ['SAGE', 'RB', 'MST', 'CON'], first: false, opp: ['OM', 'OS']},
+  {name: 'One-turn win (going second)', hand: ['DSW', 'BEWD', 'MEL', 'STONE'], first: false, opp: ['OM', 'OS']}
+];
+const Wt = {steps: [], i: 0, timer: 0, pick: 0, seed: 0};
+function wStart(spec, seed) {
+  stopAuto();
+  const s0 = BE.newDuel({first: spec.first, hand: spec.hand, seed: seed || 101, opp: spec.opp || []});
+  Wt.steps = [{s: s0, k: spec.first ? 'Your opening hand' : 'Your opening hand (going second)', t: 'Hand: ' + s0.z.hand.map(u => C[s0.cards[u].c].n).join(', ') + '.', w: spec.first ? 'Going first: no draw and no attacks this turn.' : 'Your opponent went first. Their stand-in cards are on the field.'}];
+  extendLine();
+  Wt.i = 0; wShow();
+}
+function extendLine() {
+  let cur = Wt.steps[Wt.steps.length - 1].s; let guard = 0;
+  while (cur.active === 'me' && !cur.win && guard++ < 8) {
+    const r = BE.solve(cur); if (!r.line.length) break;
+    let broke = false;
+    for (const m of r.line) {
+      const real = BE.find(cur, m); if (!real) { broke = true; break; }
+      const nx = BE.apply(cur, real);
+      const drew = nx.z.hand.filter(u => cur.z.deck.includes(u)).map(u => C[nx.cards[u].c].n);
+      const isDraw = BE.drawsCards(real);
+      let extraT = nx.log.join(' ');
+      if (isDraw && drew.length) extraT += (extraT ? ' ' : '') + 'You drew ' + drew.join(' and ') + '.';
+      Wt.steps.push({s: nx, m: real, k: 'Step ' + Wt.steps.length, t: real.t + '.', w: BE.why(cur, real) + (extraT ? ' ' + extraT : ''), g: [real.src, real.tg].filter(x => x && x !== 'skill')});
+      cur = nx;
+      if (isDraw) break;
+    }
+    if (broke) break;
+  }
+  if (cur.win) Wt.steps.push({s: cur, k: 'You win!', t: 'Your opponent’s LP hit 0.', w: ''});
+  else if (cur.active !== 'me') { const last = Wt.steps[Wt.steps.length - 1]; last.end = 1; }
+}
+function wShow() {
+  const st = Wt.steps[Wt.i]; render(st.s);
+  $('stepk').textContent = st.k + (Wt.steps.length > 1 ? '  (' + (Wt.i) + '/' + (Wt.steps.length - 1) + ')' : '');
+  $('cap').textContent = st.t; $('capw').textContent = st.w || '';
+  glow(st.g || []);
+  if (st.k === 'You win!' && Wt.i === Wt.steps.length - 1) banner('You win!');
+  $('bPrev').disabled = Wt.i === 0; $('bNext').disabled = Wt.i >= Wt.steps.length - 1;
+  const last = Wt.steps[Wt.steps.length - 1];
+  $('bTurn').style.display = Wt.i === Wt.steps.length - 1 && last.s.active !== 'me' && !last.s.win ? '' : 'none';
+}
+function stopAuto() { clearInterval(Wt.timer); Wt.timer = 0; $('bPlay').textContent = 'Auto play'; }
+$('bNext').onclick = () => { stopAuto(); if (Wt.i < Wt.steps.length - 1) { Wt.i++; wShow(); } };
+$('bPrev').onclick = () => { stopAuto(); if (Wt.i > 0) { Wt.i--; wShow(); } };
+$('bPlay').onclick = () => {
+  if (Wt.timer) { stopAuto(); return; }
+  if (Wt.i >= Wt.steps.length - 1) Wt.i = 0;
+  $('bPlay').textContent = 'Pause';
+  Wt.timer = setInterval(() => { if (Wt.i < Wt.steps.length - 1) { Wt.i++; wShow(); } else stopAuto(); }, 2600 * +$('speed').value);
+  wShow();
+};
+$('bTurn').onclick = () => {
+  stopAuto();
+  const last = Wt.steps[Wt.steps.length - 1].s;
+  let nx = oppTurn(last);
+  Wt.steps.push({s: nx, k: 'Your next turn', t: 'Your opponent played a monster and Set a card on their turn (stand-ins, since there’s no AI). Now it’s your Draw Phase.', w: nx.sk.s1 ? '' : 'Your Skill’s first effect is available now, because it’s used before your normal draw.'});
+  extendLine(); Wt.i++; wShow();
+};
+$('wPick').innerHTML = SAMPLES.map((s, i) => '<option value="' + i + '">' + s.name + '</option>').join('');
+$('wPick').onchange = () => { Wt.pick = +$('wPick').value; wStart(SAMPLES[Wt.pick]); };
+$('bRand').onclick = () => { const first = Math.random() < 0.6; wStart({first, hand: [], opp: first ? [] : ['OM', 'OS']}, (Math.random() * 1e9) | 0); $('stepk').textContent = 'Random hand ' + (first ? '(going first)' : '(going second)'); };
+
+/* ---------------- Practice tab ---------------- */
+const Q = {s: null, hist: [], ok: 0, tot: 0, first: true, opts: [], tried: false};
+function qNew(seed) {
+  const first = Q.first;
+  Q.s = BE.newDuel({first, seed: seed || ((Math.random() * 1e9) | 0), opp: first ? [] : ['OM', 'OS']}); Q.hist = []; Q.start = Q.s;
+  render(Q.s, true); qAsk();
+}
+function qAsk() {
+  const s = Q.s; render(s); $('qUndo').disabled = !Q.hist.length; $('fbk').textContent = ''; $('fbk').className = 'fbk';
+  $('score').textContent = Q.tot ? Q.ok + ' / ' + Q.tot + ' right first try' : '';
+  if (s.win) { $('opts').innerHTML = ''; $('stepk').textContent = 'You win!'; $('cap').textContent = 'Nice. Try a new hand.'; $('capw').textContent = ''; banner('You win!'); $('qTurn').style.display = 'none'; return; }
+  if (s.active !== 'me') {
+    $('opts').innerHTML = ''; $('stepk').textContent = 'Turn over';
+    $('cap').textContent = 'That’s your turn. Look at the board you built, then go to your next turn.'; $('capw').textContent = '';
+    $('qTurn').style.display = ''; return;
+  }
+  $('qTurn').style.display = 'none';
+  $('stepk').textContent = 'Turn ' + s.turn + ' · ' + {draw: 'Draw Phase', main: 'Main Phase', battle: 'Battle Phase', end: 'End Phase', standby: 'Standby Phase'}[s.phase];
+  $('cap').textContent = 'Hand: ' + s.z.hand.map(u => C[s.cards[u].c].n).join(', ') + '.'; $('capw').textContent = '';
+  $('opts').innerHTML = '<p class="hint">Thinking…</p>';
+  setTimeout(() => {
+    const r = ranked(s); if (!r.length) return;
+    const best = r[0].v;
+    const good = r.filter(x => x.v >= best - 0.05);
+    const bad = r.filter(x => x.v < best - 0.05);
+    const pick = [good[0]];
+    const rest = bad.sort(() => Math.random() - 0.5).slice(0, 3);
+    if (rest.length < 3) good.slice(1, 1 + 3 - rest.length).forEach(x => pick.push(x));
+    Q.opts = pick.concat(rest).sort(() => Math.random() - 0.5); Q.best = best; Q.tried = false; Q.goodM = good[0].m;
+    $('opts').innerHTML = Q.opts.map((x, i) => '<button data-i="' + i + '">' + esc(x.m.t) + '</button>').join('');
+    document.querySelectorAll('#opts button').forEach(b => b.onclick = () => qPick(+b.dataset.i, b));
+  }, 30);
+}
+function qPick(i, b) {
+  const x = Q.opts[i], s = Q.s;
+  const right = x.v >= Q.best - 0.05;
+  if (!Q.tried) { Q.tot++; if (right) Q.ok++; Q.tried = true; }
+  if (right) {
+    b.classList.add('good');
+    $('fbk').className = 'fbk ok'; $('fbk').textContent = '✓ ' + BE.why(s, x.m);
+    document.querySelectorAll('#opts button').forEach(z => z.disabled = true);
+    setTimeout(() => { Q.hist.push(Q.s); Q.s = BE.apply(Q.s, x.m); const lg = Q.s.log.join(' '); qAsk(); if (lg) toast(lg); }, 1500);
+  } else {
+    b.classList.add('bad'); b.disabled = true;
+    $('fbk').className = 'fbk no'; $('fbk').textContent = '✗ Not the strongest. ' + hintFor(s, x.m);
+  }
+  $('score').textContent = Q.ok + ' / ' + Q.tot + ' right first try';
+}
+function hintFor(s, m) {
+  if (m.k === 'end') return 'You still have useful plays before ending your turn.';
+  if (m.k === 'bp') return 'Speed Duels have no Main Phase 2. Is there anything to do before battling?';
+  if (m.k === 'sk2') return 'Your Skill’s second effect is once per Duel. Is this the best moment for it?';
+  if (m.k === 'mel' && C[s.cards[m.d].c].n && s.cards[m.d].c !== 'STONE' && s.z.hand.some(u => s.cards[u].c === 'STONE')) return 'Look at your discard. White Stone is the ideal Melody discard.';
+  return 'Try another option.';
+}
+$('qUndo').onclick = () => { if (!Q.hist.length) return; Q.s = Q.hist.pop(); qAsk(); };
+$('qReset').onclick = () => { Q.s = Q.start; Q.hist = []; qAsk(); };
+$('qRand').onclick = () => qNew();
+$('qTurn').onclick = () => { Q.hist.push(Q.s); Q.s = oppTurn(Q.s); qAsk(); toast('Your opponent played a monster and Set a card (stand-ins).'); };
+document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { Q.first = b.dataset.q === 'first'; document.querySelectorAll('[data-q]').forEach(x => x.classList.toggle('on', x === b)); qNew(); });
+
+/* ---------------- Learn + Deck ---------------- */
+const LESSONS = [
+  ['Speed Duels in one minute', `<p>Duel Links uses Speed Duel rules, which are smaller than Master Duel:</p><ul>
+   <li>You start with <b>4000 LP</b> and a <b>4-card</b> hand.</li>
+   <li>You have <b>3 Monster Zones</b> and <b>3 Spell &amp; Trap Zones</b>. Your Extra Deck monsters can go in any Monster Zone.</li>
+   <li>Your turn goes Draw → Standby → Main → Battle → End. There’s <b>no Main Phase 2</b>, so make all your plays before you battle.</li>
+   <li>The player going first doesn’t draw on turn 1 and can’t attack that turn.</li>
+   <li>Your Deck is 20 to 30 cards, and you also get a <b>Skill</b>, a special ability that isn’t a card.</li></ul>`, 0],
+  ['Your Skill: Destiny Draw: Blue-Eyed Dragons', `<p>It has two effects, and each one works <b>once per Duel</b>.</p>
+   <p><b>First effect, before your normal draw:</b> you Set Burst Stream of Destruction from outside your Deck, your draw becomes Blue-Eyes White Dragon, and for that turn Blue-Eyes needs no Tributes. You also get 1 extra Normal Summon, for Blue-Eyes only. Because it happens before your draw, the earliest you can use it is turn 1 if you go second, or your second turn if you go first.</p>
+   <p><b>Second effect, in your Main Phase:</b> reveal a LIGHT monster from your hand (every monster in this deck is LIGHT), put it on the bottom of your Deck or send it to the GY, then draw 2. Sending White Stone to the GY this way also triggers its End Phase summon.</p>`, 5],
+  ['Your engine: Sage and White Stone', `<p><b>Sage with Eyes of Blue</b> is your best starter. Normal Summon it and add <b>The White Stone of Ancients</b> from your Deck.</p>
+   <p>White Stone’s key rule: if it went to the GY <i>this turn</i>, it Special Summons a Blue-Eyes from your Deck in the End Phase. It doesn’t matter how it got there: discarded for Melody or Cards of Consonance, Tributed, used as Synchro material, or sent by your Skill.</p>
+   <p>Melody of Awakening Dragon is how you turn one card into two Blue-Eyes. Discard White Stone to it whenever you can.</p>`, 0],
+  ['Synchro Summoning: 1 + 8 = 9', `<p>A Synchro Summon sends a face-up <b>Tuner</b> and face-up non-Tuners from your field to the GY. Their Levels must add up exactly to the Synchro monster’s Level.</p>
+   <ul><li>Your Tuners are Sage and White Stone, both Level 1. Every Blue-Eyes main monster is Level 8. That’s exactly 9.</li>
+   <li><b>Blue-Eyes Spirit Dragon</b> takes a Tuner + any Blue-Eyes, including Alternative and Dragon Spirit of White.</li>
+   <li><b>Azure-Eyes Silver Dragon</b> needs a Tuner + a <i>Normal</i> Monster. Only the real Blue-Eyes White Dragon works; Alternative and Dragon Spirit of White are Effect Monsters on the field.</li></ul>
+   <p>Using White Stone as material also counts as sending it to the GY, so it summons again in the End Phase.</p>`, 2],
+  ['The Spirit Dragon → Azure-Eyes trick', `<p>Blue-Eyes Spirit Dragon can Tribute itself, even during your opponent’s turn, to Special Summon Azure-Eyes in Defense Position. The summoned monster is supposed to be destroyed in the End Phase.</p>
+   <p>Azure-Eyes stays anyway: when it’s Special Summoned, your Dragons can’t be targeted or destroyed by card effects until the end of the next turn, and that includes Azure itself.</p>
+   <p>The best time is usually your opponent’s turn, in response to them trying to remove Spirit Dragon. Note that the protection also stops <i>you</i> from targeting your own Dragons, for example with Sage’s effect.</p>`, 0],
+  ['Tribute Summons and your Normal Summon', `<p>You get 1 Normal Summon or Set per turn. Level 5 and 6 monsters need 1 Tribute; Level 7 and higher need 2.</p>
+   <p>Blue-Eyes White Dragon is Level 8, so without your Skill it needs 2 Tributes. Sage + White Stone make good Tributes, and the Tributed White Stone summons another Blue-Eyes in the End Phase.</p>
+   <p>Alternative never uses your Normal Summon: you Special Summon it from your hand by revealing a Blue-Eyes White Dragon. It can’t be summoned from the Deck by Sage or White Stone.</p>`, 4],
+  ['Removal: when to use what', `<ul><li><b>Raigeki Break</b> is a Trap. Set it, then use it from your opponent’s next turn on, ideally right after they summon their best monster. Its cost is a discard.</li>
+   <li><b>Mystical Space Typhoon</b> answers a Spell or Trap. Set it to use during their turn.</li>
+   <li><b>Alternative</b> destroys a monster once per turn, but then it can’t attack.</li>
+   <li><b>Dragon Spirit of White</b> banishes a Spell or Trap whenever it’s summoned, including by White Stone in the End Phase.</li>
+   <li><b>Burst Stream</b> (from your Skill) wipes their monsters if you control Blue-Eyes White Dragon. Your Blue-Eyes White Dragons can’t attack that turn, but your other monsters can.</li></ul>`, 6],
+  ['Common mistakes', `<ul><li>Using White Stone’s banish effect the same turn it went to the GY, which throws away its End Phase summon.</li>
+   <li>Expecting Melody to find Dragon Spirit of White. It only has 2500 ATK, and Melody needs 3000.</li>
+   <li>Trying to use Alternative or Dragon Spirit of White for Azure-Eyes. Only the real Blue-Eyes White Dragon is a Normal Monster on the field.</li>
+   <li>Battling before you’re done. There’s no Main Phase 2.</li>
+   <li>Filling all 3 Monster Zones before the End Phase, which leaves no room for White Stone’s summon.</li></ul>`, 1]
+];
+function buildLearn() {
+  let h = '<p class="intro">Short lessons on Speed Duel rules and how this deck plays. Each one links to a walkthrough you can watch step by step.</p>';
+  LESSONS.forEach((L, i) => { h += '<details class="lesson"' + (i === 0 ? ' open' : '') + '><summary><span class="n">' + (i + 1) + '</span>' + L[0] + '</summary><div class="body">' + L[1] + '<p><button data-w="' + L[2] + '">Watch: ' + SAMPLES[L[2]].name + '</button></p></div></details>'; });
+  $('learnview').innerHTML = h;
+  document.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { Wt.pick = +b.dataset.w; $('wPick').value = Wt.pick; setMode('watch'); wStart(SAMPLES[Wt.pick]); });
+}
+function buildDeck() {
+  const count = {}; BE.DECK.forEach(c => count[c] = (count[c] || 0) + 1);
+  const cell = (c, n) => '<button class="dcard" data-c="' + c + '" aria-label="' + C[c].n + '"><span class="fb">' + C[c].n + '</span><img src="' + IMG_S(C[c].id) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' + (n > 1 ? '<span class="q">×' + n + '</span>' : '') + '</button>';
+  const grp = list => '<div class="dgrid">' + list.map(c => cell(c, count[c] || 1)).join('') + '</div>';
+  const ec = {}; BE.EXTRA.forEach(c => ec[c] = (ec[c] || 0) + 1);
+  $('deckview').innerHTML = '<h2>Skill</h2><div class="skillbox"><b>Destiny Draw: Blue-Eyed Dragons</b><br>' + esc(SKILL_TEXT) + '</div>' +
+    '<h2>Monsters (11)</h2>' + grp(['BEWD', 'ALT', 'DSW', 'SAGE', 'STONE']) + '<h2>Spells (7)</h2>' + grp(['MEL', 'CON', 'MST']) + '<h2>Traps (2)</h2>' + grp(['RB']) +
+    '<h2>Extra Deck (3)</h2><div class="dgrid">' + ['AZ', 'SPI'].map(c => cell(c, ec[c])).join('') + '</div><h2>From your Skill</h2>' + grp(['BURST']) +
+    '<p class="intro" style="margin-top:12px">Tap a card for its role in the deck and its full text.</p>';
+  document.querySelectorAll('.dcard').forEach(b => b.onclick = () => openCard(b.dataset.c, null));
+}
+
+/* ---------------- tabs ---------------- */
+function setMode(m) {
+  MODE = m; closeModal(); stopAuto();
+  ['learn', 'watch', 'practice', 'play', 'deck'].forEach(x => $('t' + x[0].toUpperCase() + x.slice(1)).classList.toggle('on', x === m));
+  $('learnview').style.display = m === 'learn' ? 'block' : 'none';
+  $('deckview').style.display = m === 'deck' ? 'block' : 'none';
+  $('duelview').style.display = (m === 'watch' || m === 'practice' || m === 'play') ? '' : 'none';
+  if (m === 'watch' || m === 'practice' || m === 'play') $('duelview').style.display = window.innerWidth >= 980 ? 'grid' : 'block';
+  $('watchCtrls').style.display = m === 'watch' ? '' : 'none';
+  $('practice').style.display = m === 'practice' ? '' : 'none';
+  $('playCtrls').style.display = m === 'play' ? '' : 'none';
+  $('hint').textContent = m === 'play' ? 'Tap a card for details and its legal plays. Drag to play it, hold for its effects, double-tap a monster to change position.' : 'Tap any card to see its art and full text.';
+  if (m === 'watch' || m === 'practice' || m === 'play') {
+    layout();
+    if (m === 'watch') { if (!Wt.steps.length) wStart(SAMPLES[Wt.pick]); else wShow(); }
+    if (m === 'practice') { if (!Q.s) qNew(); else qAsk(); }
+    if (m === 'play') { if (!P.s) newPlay(true); else { render(P.s, true); afterPlay(); } }
+  }
+  window.scrollTo(0, 0);
+}
+['learn', 'watch', 'practice', 'play', 'deck'].forEach(x => $('t' + x[0].toUpperCase() + x.slice(1)).onclick = () => setMode(x));
+let rz = 0; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if ($('duelview').style.display !== 'none') { const s = SHOWN; layout(); if (s) render(s, true); } }, 150); });
+buildLearn(); buildDeck(); setMode('learn');
+Object.values(C).forEach(i => { if (i.id) { const im = new Image(); im.src = IMG_S(i.id); } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
