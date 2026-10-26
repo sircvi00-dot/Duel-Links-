@@ -115,9 +115,20 @@ select{font-family:var(--ui);font-size:15px;background:#fff;color:var(--ink);bor
 .mbox h3{font-family:var(--display);color:var(--sapph2);margin:0;font-size:15px;line-height:1.2}
 .mbox .tl{font-size:13px;color:var(--mute)}
 .mbox .role{background:rgba(31,95,168,.07);border-left:3px solid var(--sapph);padding:6px 8px;font-size:13px;line-height:1.35}
-.mbox .desc{font-size:12px;line-height:1.45;color:var(--mute);white-space:pre-line}
+.mbox .desc{font-size:13px;line-height:1.45;white-space:pre-line}
 .mbox .acts{display:grid;gap:5px}.mbox .acts button{text-align:left;font-size:14px;min-height:38px;padding:7px 10px}
 .mbox .acts .h{font-size:12px;color:var(--mute)}
+.mbox .desc .seg{display:block;margin:0 0 6px;color:var(--ink)}
+.mbox .desc .seg.use{width:100%;text-align:left;font-size:inherit;line-height:1.45;min-height:0;padding:8px 10px;background:var(--sapph);border:1px solid var(--sapph2);color:#fff;border-radius:7px;box-shadow:0 0 0 3px rgba(31,95,168,.22);white-space:pre-line}
+.mbox .desc .seg.use:hover{background:var(--sapph2)}
+.mbox .desc .seg.use b{display:block;font-size:11px;letter-spacing:.03em;margin-top:4px;opacity:.9}
+.mbox .desc .seg.use.on{cursor:default}
+.mbox .pbtns{display:grid;gap:5px}.mbox .pbtns button{text-align:left;font-size:14px;min-height:38px;padding:7px 10px}
+.owe{display:none;width:13px;height:13px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:#c3cad4;border:1px solid rgba(0,0,0,.35);transition:background .3s,box-shadow .3s}
+.owe.show{display:inline-block}
+.owe.on{background:#ff3b30;border-color:#ffb3ad;box-shadow:0 0 6px 2px rgba(255,59,48,.75);animation:owe 1.1s ease-in-out infinite}
+@keyframes owe{50%{box-shadow:0 0 14px 5px rgba(255,59,48,.9)}}
+@media (prefers-reduced-motion:reduce){.owe.on{animation:none}}
 @media (min-width:760px){.mbox{grid-template-columns:280px minmax(0,1fr);padding:14px;gap:14px}.mbox h3{font-size:19px}.mbox .role{font-size:15px}.mbox .desc{font-size:14px}}
 .sheet{max-width:440px;width:100%;max-height:84vh;overflow:auto;background:#fbfcfd;border:1px solid var(--sapph);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px}
 .sheet h3{font-family:var(--display);color:var(--sapph2);margin:0;font-size:16px}
@@ -161,7 +172,7 @@ select{font-family:var(--ui);font-size:15px;background:#fff;color:var(--ink);bor
 
   <div class="main view" id="duelview">
     <div>
-      <div class="lp"><span>Opponent<b id="lpO">4000</b></span><span>You<b id="lpM">4000</b></span></div>
+      <div class="lp"><span>Opponent<b id="lpO">4000</b></span><span><span id="owe" class="owe" role="status" aria-label=""></span>You<b id="lpM">4000</b></span></div>
       <div class="stage" id="stage"></div>
     </div>
     <div class="panel">
@@ -574,7 +585,7 @@ function apply(s0, m, opt) {
       m.a.forEach(c => { const x = takeFromDeck(s, c); if (x) { cd(s, x).f = 'u'; s.z.hand.push(x); } });
       send(s, u, 'gy'); break;
     }
-    case 'con': { const u = handUid(s, m); send(s, firstIn(s, 'hand', 'STONE'), 'gy'); draw(s, 2, hidden); send(s, u, 'gy'); break; }
+    case 'con': { const u = handUid(s, m); send(s, m.d && s.z.hand.includes(m.d) && code(s, m.d) === 'STONE' ? m.d : firstIn(s, 'hand', 'STONE'), 'gy'); draw(s, 2, hidden); send(s, u, 'gy'); break; }
     case 'mst': { const u = m.src && s.cards[m.src] ? m.src : firstIn(s, 'hand', 'MST'); destroy(s, m.tg); send(s, u, 'gy'); break; }
     case 'set': { const u = handUid(s, m); send(s, u, 'sz', {f: 'd', st: T}); break; }
     case 'rb': { send(s, m.d, 'gy'); destroy(s, m.tg); send(s, m.src, 'gy'); break; }
@@ -919,17 +930,96 @@ function typeLine(c) {
   if (i.t === 'm' || i.t === 'x') return 'Level ' + i.lv + ' · LIGHT · ' + i.race + ' · ' + i.sub + ' · ' + i.atk + ' ATK / ' + i.def + ' DEF';
   return i.sub || '';
 }
+/* each card's text split into its effects, with the moves that use each one */
+const EFX = {
+  ALT: [['Cannot be Normal', ['alt']], ['This card\'s name', []], ['Once per turn:', ['altd']]],
+  DSW: [['(This card', []], ['This card is treated', []], ['When this card is Normal', ['p_dsw']], ['If your opponent', ['dswq']]],
+  SAGE: [['When this card', ['p_sage']], ['You can discard', ['sage']]],
+  STONE: [['Once per turn', ['p_stone']], ['You can banish', ['st2']]],
+  MEL: [['Discard', ['mel']]], CON: [['Discard', ['con']]], MST: [['Target', ['mst']]], RB: [['Discard', ['rb']]], BURST: [['If you control', ['burst']]],
+  AZ: [['1 Tuner', []], ['If this card is Special', []], ['Once per turn', ['p_azure']]],
+  SPI: [['1 Tuner', []], ['Neither player', []], ['Once per turn', []], ['During either', ['spit']]]
+};
+const EFX_KINDS = new Set(Object.values(EFX).flatMap(d => d.flatMap(x => x[1])));
+const COST = {mel: 1, con: 1, rb: 1};   // effects whose cost you pay yourself by dragging a card to the GY
+function segs(c) {
+  const t = (TEXTS[c] || '').trim(), d = EFX[c];
+  if (!d) return [{t, k: []}];
+  const ix = d.map(([p]) => t.indexOf(p));
+  if (ix.some(i => i < 0)) return [{t, k: d.flatMap(x => x[1])}];
+  return d.map(([p, k], i) => ({t: t.slice(ix[i], i + 1 < d.length ? ix[i + 1] : undefined).trim(), k}));
+}
+function cardTop(c) {
+  const i = C[c];
+  return i.id ? '<img id="mImg" src="' + IMG(i.id) + '" alt="' + i.n + '">' : '<div class="card dummy" style="position:relative;width:100%;aspect-ratio:59/86;font-size:14px">' + i.n + '</div>';
+}
+function bigArt(c) { const i = C[c]; const mi = $('mImg'); if (mi) mi.onclick = () => { const b = document.createElement('div'); b.className = 'bigcard'; b.innerHTML = '<img src="' + IMG(i.id) + '"><p>Tap to close</p>'; b.onclick = () => b.remove(); document.body.appendChild(b); }; }
 function openCard(c, acts, uid) {
   const i = C[c];
-  const img = i.id ? '<img id="mImg" src="' + IMG(i.id) + '" alt="' + i.n + '">' : '<div class="card dummy" style="position:relative;width:100%;aspect-ratio:59/86;font-size:14px">' + i.n + '</div>';
+  const S = MODE === 'play' && P.s ? P.s : SHOWN;
+  const own = m => m.src && S.cards[m.src] && S.cards[m.src].c === c && uid && uid[0] !== 'o';
+  const eff = (acts || []).filter(m => EFX_KINDS.has(m.k) && own(m));
+  const other = (acts || []).filter(m => !eff.includes(m));
+  const G = segs(c);
+  const desc = G.map((g, k) => {
+    const use = eff.some(m => g.k.includes(m.k));
+    return use ? '<button class="seg use" data-g="' + k + '">' + esc(g.t) + '<b>Tap to use this effect</b></button>' : '<span class="seg">' + esc(g.t) + '</span>';
+  }).join('');
   let ah = '';
-  if (acts && acts.length) ah = '<div class="acts"><div class="h">What it can do right now:</div>' + acts.map((m, k) => '<button data-k="' + k + '">' + esc(m.t) + '</button>').join('') + '</div>';
-  else if (acts) ah = '<div class="acts"><div class="h">' + esc(idleReason(c, uid)) + '</div></div>';
-  openModal('<div class="mbox">' + img + '<div class="mtext"><div class="mscroll"><h3>' + i.n + '</h3><div class="tl">' + typeLine(c) + '</div>' + ah +
-    '<div class="role">' + (ROLE[c] || '') + '</div><div class="desc">' + esc(TEXTS[c] || '') + '</div></div><button id="mClose">Close</button></div></div>');
+  if (other.length) ah = '<div class="acts"><div class="h">' + (uid && uid[0] === 'o' ? 'What you can do to it right now:' : eff.length ? 'Or play it:' : 'What it can do right now:') + '</div>' + other.map(m => '<button data-k="' + acts.indexOf(m) + '">' + esc(m.t) + '</button>').join('') + '</div>';
+  else if (acts && !eff.length) ah = '<div class="acts"><div class="h">' + esc(idleReason(c, uid)) + '</div></div>';
+  const top = eff.length ? '<div class="acts"><div class="h">The blue effect is what it can do right now. Tap it to use it.</div></div>' : '';
+  openModal('<div class="mbox">' + cardTop(c) + '<div class="mtext"><div class="mscroll"><h3>' + i.n + '</h3><div class="tl">' + typeLine(c) + '</div>' + top +
+    '<div class="desc">' + desc + '</div>' + ah + '<div class="role">' + (ROLE[c] || '') + '</div></div><button id="mClose">Close</button></div></div>');
   $('mClose').onclick = closeModal;
-  const mi = $('mImg'); if (mi) mi.onclick = () => { const b = document.createElement('div'); b.className = 'bigcard'; b.innerHTML = '<img src="' + IMG(i.id) + '"><p>Tap to close</p>'; b.onclick = () => b.remove(); document.body.appendChild(b); };
-  if (acts) document.querySelectorAll('.mbox .acts button').forEach(b => b.onclick = () => { const m = acts[+b.dataset.k]; closeModal(); playMove(m); });
+  bigArt(c);
+  document.querySelectorAll('.mbox .acts button').forEach(b => b.onclick = () => { const m = acts[+b.dataset.k]; closeModal(); if (COST[m.k]) startOwe(BE.moves(P.s, true).filter(x => x.k === m.k && x.src === m.src && (!m.tg || x.tg === m.tg))); else playMove(m); });
+  document.querySelectorAll('.mbox .seg.use').forEach(b => b.onclick = () => { const g = G[+b.dataset.g]; useEffect(c, eff.filter(m => g.k.includes(m.k))); });
+}
+/* tapping a blue effect */
+function useEffect(c, ms) {
+  closeModal(); if (!ms.length) return;
+  const k = ms[0].k, name = C[c].n;
+  if (COST[k]) {
+    const tg = [...new Set(ms.map(m => m.tg).filter(Boolean))];
+    if (tg.length > 1) { sheet(name, 'Pick the card to destroy:', tg.map(t => ({label: (t[0] === 'o' ? '' : 'Your ') + C[P.s.cards[t].c].n, fn: () => startOwe(ms.filter(m => m.tg === t))}))); return; }
+    startOwe(ms); return;
+  }
+  const seen = new Set(); choose(ms.filter(m => !seen.has(m.t) && seen.add(m.t)), name, '');
+}
+/* ---- paying costs: the red light ---- */
+const OWE_MSG = 'Something still needs to be done before you can make another move. Look back at the card you just used.';
+function setOwe() {
+  const o = $('owe'); if (!o) return;
+  o.classList.toggle('show', MODE === 'play'); o.classList.toggle('on', MODE === 'play' && !!P.owe);
+  o.setAttribute('aria-label', P.owe ? 'Something still needs to be done' : '');
+}
+function owedNag() { toast(OWE_MSG, 1); }
+function startOwe(ms) {
+  if (!ms.length) return;
+  const s = P.s, m0 = ms[0], u = m0.src, pv = JSON.parse(JSON.stringify(s));
+  if (s.z.hand.includes(u)) { const i = pv.z.sz.indexOf(null); pv.z.hand = pv.z.hand.filter(x => x !== u); pv.z.sz[i] = u; }
+  pv.cards[u].f = 'u'; pv.log = []; pv.pend = [];
+  P.owe = {ms, k: m0.k, src: u, pv};
+  glow([]); render(pv); setOwe(); $('pUndo').disabled = false;
+}
+function cancelOwe() { P.owe = null; render(P.s); setOwe(); afterPlay(); toast('Activation cancelled. Nothing was used.'); }
+function payOwe(u) {
+  const o = P.owe, s = P.s, c = s.cards[u].c;
+  if (!s.z.hand.includes(u) || u === o.src) { owedNag(); return; }
+  let ok = o.k === 'con' ? (c === 'STONE' ? o.ms : []) : o.ms.filter(m => m.d && s.cards[m.d].c === c);
+  if (!ok.length) { toast(o.k === 'con' ? 'That card can’t pay this cost. Cards of Consonance needs you to discard a Dragon Tuner with 1000 or less ATK, and in this deck that’s The White Stone of Ancients.' : 'That card can’t be discarded for this cost.', 1); return; }
+  ok = ok.map(m => Object.assign({}, m, {d: u}));
+  let best = ok[0];
+  if (ok.length > 1) {
+    let bv = -1e9;
+    ok.forEach(m => { const t = BE.apply(s, m, {hidden: true}); const v = (t.win || t.active !== 'me') ? BE.evaluate(t) : BE.solve(t, {limit: 20000}).v; if (v > bv) { bv = v; best = m; } });
+  }
+  P.owe = null; setOwe();
+  const pre = ['You discarded ' + C[c].n + ' to pay the cost.'];
+  if (best.k === 'mel') pre.push('Melody added ' + best.a.map(x => C[x].n).join(' and ') + ' to your hand.');
+  if (best.k === 'rb' && best.tg && s.cards[best.tg]) pre.push('Raigeki Break destroyed ' + (best.tg[0] === 'o' ? 'the ' + C[s.cards[best.tg].c].n.replace(/^Opponent’s /, 'opponent’s ') : 'your ' + C[s.cards[best.tg].c].n) + '.');
+  playMove(best, {raw: true, pre});
 }
 function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 /* items: [{label, w, fn, cls}] */
@@ -1022,6 +1112,7 @@ function dblTap(u) {
 
 /* moves that belong to a card */
 function actsFor(u) {
+  if (P.owe) return [];
   const s = P.s; const z = BE.zoneOf(s, u); const c = s.cards[u].c;
   return BE.moves(s, true).filter(m => {
     if (m.k === 'end' || m.k === 'bp' || m.k === 'oend' || m.k === 'draw') return false;
@@ -1037,6 +1128,7 @@ function actsFor(u) {
 }
 function idleReason(c, u) {
   const s = P.s;
+  if (P.owe) return OWE_MSG;
   if (s.win) return 'The Duel is over. Tap New duel to play again.';
   if (s.pend.length) return 'Answer the effect prompt first.';
   if (s.active !== 'me') return 'It’s your opponent’s turn. Only Set Traps, Set Quick-Play Spells and Quick Effects can be used now.';
@@ -1078,6 +1170,7 @@ function whyNot(c, u) {
 }
 function dropCard(u, h) {
   const s = P.s; if (!h) return;
+  if (P.owe) { if (h.t === 'gy' && s.z.hand.includes(u) && u !== P.owe.src) payOwe(u); else owedNag(); return; }
   const z = BE.zoneOf(s, u), c = s.cards[u].c, info = C[c];
   if (s.pend.length) { showPending(); return; }
   if (z === 'hand') {
@@ -1097,6 +1190,7 @@ function dropCard(u, h) {
       let c1 = ms.filter(m => ['mel', 'con', 'mst', 'set'].includes(m.k));
       if (dmode === 'd' || info.t === 't') { const st = c1.filter(m => m.k === 'set'); if (st.length) c1 = st; }
       else { const act = c1.filter(m => m.k !== 'set'); if (act.length) c1 = act; }
+      if (c1.length && COST[c1[0].k]) return startOwe(c1.filter(m => m.k === c1[0].k));
       return choose(c1, info.n, whyNot(c, u) || 'You can’t play that right now.');
     }
   }
@@ -1117,7 +1211,7 @@ function choose(ms, title, failMsg) {
 /* ---------------- Play tab ---------------- */
 const P = {s: null, hist: [], first: true};
 function newPlay(first, opp) {
-  P.first = first; P.hist = [];
+  P.first = first; P.hist = []; P.owe = null;
   P.s = BE.newDuel({first, opp: opp || [], hand: P.pick || undefined}); P.pick = null;
   P.key = handKey(P.s);
   render(P.s, true); P.quiet = true; afterPlay(true); P.quiet = false;
@@ -1158,7 +1252,7 @@ function situation() {
   const s = P.s, nm = u => { const d = s.cards[u]; return C[d.c].n + (d.f === 'd' ? ' (face-down)' : d.p === 'd' ? ' (Defense)' : ''); };
   const list = z => s.z[z].filter(Boolean).map(z === 'ex' || z === 'hand' ? (u => C[s.cards[u].c].n) : nm).join(', ') || 'none';
   const ph = {draw: 'Draw Phase', standby: 'Standby Phase', main: 'Main Phase', battle: 'Battle Phase', end: 'End Phase', opp: 'Opponent’s turn'}[s.phase];
-  let t = 'I’m practicing my Duel Links Blue-Eyes Speed Duel deck (Skill: Destiny Draw: Blue-Eyed Dragons) in my trainer app. Here’s my situation:\n' +
+  let t = 'I’m practicing my Duel Links Blue-Eyes Speed Duel deck (Skill: Destiny Draw: Blue-Eyed Dragons) in my trainer app. Here’s my situation:\n' + (P.owe ? 'I’ve just activated ' + C[s.cards[P.owe.src].c].n + ' and haven’t paid its discard cost yet.\n' : '') +
     'Turn ' + s.turn + ', ' + ph + ', going ' + (P.first ? 'first' : 'second') + '. LP: me ' + s.lp.me + ', opponent ' + s.lp.opp + '.\n' +
     'Normal Summon ' + (s.f.ns === s.turn ? 'used' : 'available') + '. Skill: 1st effect ' + (s.sk.s1 ? 'used' : 'ready') + ', 2nd effect ' + (s.sk.s2 ? 'used' : 'ready') + '.\n' +
     'My hand: ' + list('hand') + '\nMy monsters: ' + list('mz') + '\nMy Spells/Traps: ' + list('sz') + '\nMy GY: ' + list('gy') + '\nBanished: ' + list('ban') + '\nMy Extra Deck: ' + list('ex') +
@@ -1173,22 +1267,24 @@ $('pAsk').onclick = async () => {
     {html: '<textarea readonly style="width:100%;height:150px;font-size:13px">' + esc(t) + '</textarea>'},
     {label: 'Open Claude', fn: () => { window.open('https://claude.ai/new', '_blank'); }}], {close: 'Close'});
 };
-function playMove(m) {
+function playMove(m, opt) {
+  opt = opt || {};
+  if (P.owe && !opt.raw) { owedNag(); return; }
   const s = P.s;
-  const real = (m.sets ? null : BE.find(s, m)) || m;
+  const real = opt.raw ? m : (m.sets ? null : BE.find(s, m)) || m;
   P.hist.push(s); if (P.hist.length > 300) P.hist.shift();
   const before = s;
   P.s = BE.apply(s, real);
   render(P.s);
   const drew = newCards(before, P.s, real);
-  const msgs = P.s.log.slice(); if (drew.length) msgs.push('You drew ' + drew.join(' and ') + '.');
+  const msgs = (opt.pre || []).concat(P.s.log); if (drew.length) msgs.push('You drew ' + drew.join(' and ') + '.');
   if (msgs.length) toast(msgs.join(' '));
   afterPlay();
 }
 function newCards(a, b, m) { if (!BE.drawsCards(m)) return []; return b.z.hand.filter(u => !a.z.hand.includes(u) && a.z.deck.includes(u)).map(u => C[b.cards[u].c].n); }
 function afterPlay(fresh) {
   const s = P.s;
-  $('pUndo').disabled = !P.hist.length;
+  $('pUndo').disabled = !P.hist.length && !P.owe;
   $('pBan').textContent = 'Banished (' + s.z.ban.length + ')';
   const ph = {draw: 'Draw Phase', standby: 'Standby Phase', main: 'Main Phase', battle: 'Battle Phase', end: 'End Phase', opp: 'Opponent’s turn'}[s.phase];
   const T = s.turn;
@@ -1205,6 +1301,8 @@ function afterPlay(fresh) {
   else pp.style.display = 'none';
   setCap(s);
   glow([]);
+  setOwe();
+  if (P.owe) return;
   if (s.win) { banner(s.win === 'me' ? 'You win!' : 'You lose'); return; }
   if (s.pend.length) { setTimeout(showPending, 350); return; }
   if (!P.quiet && s.active === 'me' && s.phase === 'draw' && !s.sk.s1 && BE.moves(s, true).some(m => m.k === 'sk1')) setTimeout(drawPrompt, 350);
@@ -1221,11 +1319,17 @@ function setCap(s) {
 function showPending() {
   const s = P.s; if (!s.pend.length || MODE !== 'play') return;
   const ms = BE.moves(s, true);
-  const p = s.pend[0];
-  const title = {sage: 'Sage with Eyes of Blue', dsw: 'Dragon Spirit of White', stone: 'The White Stone of Ancients', azure: 'Azure-Eyes Silver Dragon'}[p.k];
-  const sub = {sage: 'Its Normal Summon effect can search your Deck.', dsw: 'It was summoned, so it can banish an opponent’s Spell or Trap.', stone: 'It went to the GY this turn, so its End Phase effect can summon a Blue-Eyes from your Deck.', azure: 'Standby Phase: it can revive a Normal Monster from your GY.'}[p.k];
+  const p = s.pend[0], c = s.cards[p.u].c, kind = 'p_' + p.k;
+  const sub = {sage: 'Its Normal Summon effect can search your Deck.', dsw: 'It was summoned, so it can banish an opponent’s Spell or Trap.', stone: 'It went to the GY this turn, so its End Phase effect can summon a Blue-Eyes from your Deck.', azure: 'Standby Phase: it can revive a Normal Monster from your GY.'}[p.k] || '';
   glow([p.u]);
-  sheet(title, sub, ms.map(m => ({label: m.t, fn: () => playMove(m)})).concat(P.hist.length ? [{label: '↶ Undo the last play', cls: 'cancel', fn: () => $('pUndo').onclick()}] : []), {lock: true});
+  const desc = segs(c).map(g => g.k.includes(kind) ? '<span class="seg use on">' + esc(g.t) + '</span>' : '<span class="seg">' + esc(g.t) + '</span>').join('');
+  const items = ms.map(m => ({label: m.t, fn: () => playMove(m)}));
+  if (P.hist.length) items.push({label: '↶ Undo the last play', fn: () => $('pUndo').onclick()});
+  modalLocked = true;
+  openModal('<div class="mbox">' + cardTop(c) + '<div class="mtext"><div class="mscroll"><h3>' + C[c].n + '</h3><div class="tl">' + esc(sub) + '</div>' +
+    '<div class="desc">' + desc + '</div><div class="pbtns">' + items.map((it, k) => '<button data-k="' + k + '"' + (k === 0 ? ' class="primary"' : '') + '>' + esc(it.label) + '</button>').join('') + '</div></div></div></div>');
+  bigArt(c);
+  document.querySelectorAll('.mbox .pbtns button').forEach(b => b.onclick = () => { modalLocked = false; closeModal(); items[+b.dataset.k].fn(); });
 }
 function drawPrompt() {
   const s = P.s; if (MODE !== 'play' || s.phase !== 'draw' || s.pend.length) return;
@@ -1242,7 +1346,7 @@ $('pPhase').onclick = () => {
   if (s.phase === 'main') { const m = BE.moves(s, true).find(m => m.k === 'bp'); if (m) playMove(m); }
 };
 $('pEnd').onclick = () => { const s = P.s; if (s.pend.length) { showPending(); return; } const m = BE.moves(s, true).find(m => m.k === 'end'); if (m) playMove(m); };
-$('pUndo').onclick = () => { if (!P.hist.length) return; closeModal(); P.s = P.hist.pop(); render(P.s); afterPlay(); };
+$('pUndo').onclick = () => { if (P.owe) { cancelOwe(); return; } if (!P.hist.length) return; closeModal(); P.s = P.hist.pop(); render(P.s); afterPlay(); };
 $('pBan').onclick = () => openPile('ban');
 $('pNew').onclick = () => sheet('New duel', 'Speed Duel: 4000 LP, 4-card opening hand.', [
   {label: 'Go first', w: 'No draw and no attacks on turn 1. Build the strongest board you can.', fn: () => newPlay(true)},
@@ -1314,7 +1418,7 @@ function openPile(z) {
   let h = '<div class="pview"><div class="pg">' + (list.length ? list.map(u => { const c = s.cards[u].c; return '<button class="pc" data-u="' + u + '" aria-label="' + C[c].n + '">' + (C[c].id ? '<img src="' + IMG_S(C[c].id) + '" alt="">' : C[c].n) + '</button>'; }).join('') : '<p class="note">Empty.</p>') + '</div></div>';
   let extra = [];
   if (MODE === 'play' && z === 'ex') extra = BE.moves(P.s, true).filter(m => m.k === 'syn').map(m => ({label: m.t, fn: () => playMove(m)}));
-  if (MODE === 'play' && z === 'gy') extra = BE.moves(P.s, true).filter(m => m.k === 'st2').map(m => ({label: m.t, fn: () => playMove(m)}));
+  if (MODE === 'play' && z === 'gy' && !P.owe) extra = BE.moves(P.s, true).filter(m => m.k === 'st2').map(m => ({label: m.t, fn: () => playMove(m)}));
   sheet(title + ' (' + list.length + ')', z === 'ex' && MODE === 'play' && !extra.length ? 'To Synchro Summon, control a face-up Level 1 Tuner (Sage or White Stone) and a Level 8 Blue-Eyes. Azure-Eyes needs the real Blue-Eyes White Dragon.' : '', [{html: h}].concat(extra), {close: 'Close'});
   document.querySelectorAll('.pview .pc').forEach(b => b.onclick = () => { const u = b.dataset.u; const c = s.cards[u].c; closeModal(); openCard(c, MODE === 'play' ? actsFor(u) : null, u); });
 }
@@ -1522,17 +1626,19 @@ function setMode(m) {
   $('watchCtrls').style.display = m === 'watch' ? '' : 'none';
   $('practice').style.display = m === 'practice' ? '' : 'none';
   $('playCtrls').style.display = m === 'play' ? '' : 'none';
-  $('hint').textContent = m === 'play' ? 'Tap a card for details and its legal plays. Drag to play it, hold for its effects, double-tap a monster to change position.' : 'Tap any card to see its art and full text.';
+  $('hint').textContent = m === 'play' ? 'Tap a card to see it. The effect in blue is the one you can use now. Drag to play a card, and if the red light by your LP comes on, pay the cost by dragging a card to your GY.' : 'Tap any card to see its art and full text.';
   if (m === 'watch' || m === 'practice' || m === 'play') {
     layout();
     if (m === 'watch') { if (!Wt.steps.length) wStart(SAMPLES[Wt.pick]); else wShow(); }
     if (m === 'practice') { if (!Q.s) qNew(); else qAsk(); }
-    if (m === 'play') { if (!P.s) newPlay(true); else { render(P.s, true); afterPlay(); } }
+    if (m === 'play') { if (!P.s) newPlay(true); else { render(P.owe ? P.owe.pv : P.s, true); afterPlay(); } }
   }
+  setOwe();
   window.scrollTo(0, 0);
 }
 ['learn', 'watch', 'practice', 'play', 'deck'].forEach(x => $('t' + x[0].toUpperCase() + x.slice(1)).onclick = () => setMode(x));
 let rz = 0; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if ($('duelview').style.display !== 'none') { const s = SHOWN; layout(); if (s) render(s, true); } }, 150); });
+['pPhase', 'pEnd', 'pSkill', 'pWhat', 'pBest', 'pOpp'].forEach(id => { const el = $(id), f = el.onclick; el.onclick = e => { if (P.owe) { owedNag(); return; } f.call(el, e); }; });
 buildLearn(); buildDeck(); setMode('learn');
 Object.values(C).forEach(i => { if (i.id) { const im = new Image(); im.src = IMG_S(i.id); } });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
